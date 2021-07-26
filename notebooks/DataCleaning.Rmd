@@ -18,6 +18,8 @@ library(tidyverse)
 library(ggplot2) 
 library(sandwich)
 library(stargazer)
+library(plyr)
+library(dplyr)
 
 ```
 
@@ -25,7 +27,37 @@ library(stargazer)
 
 ```{r read in data}
 
-d_covid <- read.csv(file = './JAL_Lab2/src/data/covid-counties.csv')
-d_openings <- read.csv(file = './JAL_Lab2/src/data/COVID-19 US state policy database (CUSP) - Closures & Reopening.csv')
-d_trips <- read.csv(file = './JAL_Lab2/src/data/Trips_by_Distance_-_2020.csv')
+d_covid <- read.csv(file = './../src/data/covid-counties.csv')
+d_openings <- read.csv(file = './../src/data/COVID-19 US state policy database (CUSP) - Closures & Reopening.csv')
+d_trips <- read.csv(file = './../src/data/Trips_by_Distance_-_2020.csv')
 ```
+
+```{r filter data}
+#filter by date, month of april, 2020
+d_covid <- filter(d_covid, date >= "2020-04-01", date <= "2020-04-30")
+d_trips <- filter(d_trips, Date >= "4/1/2020", Date <= "4/30/2020")
+
+
+#sum values for each county
+covid_col <- ddply(d_covid, "county", numcolwise(sum))
+trips_col <- ddply(d_trips, "County.Name", numcolwise(sum))
+
+#clean county name format
+d_trips$county <- gsub("([A-Za-z]+).*", "\\1", d_trips$County.Name)
+trips_col$county <- gsub("([A-Za-z]+).*", "\\1", trips_col$County.Name)
+
+#code to merge state info to d
+d <- merge(x = trips_col, y = covid_col, by = "county")
+d <- merge(x = d, y = d_trips[ , c("county", "State.Postal.Code")], by = "county", all.x=TRUE)
+
+#merge county policies to d
+d_openings$strict <- d_openings$Closed.bars.x2 != "0"
+
+d_openings$State.Postal.Code <- d_openings$State.Abbreviation
+d <- merge(x = d, y = d_openings[ , c("State.Postal.Code", "strict")], by = "State.Postal.Code", all.x = TRUE)
+
+#drop na and duplicates
+d <- d %>% drop_na()
+d <- unique(d)
+```
+
