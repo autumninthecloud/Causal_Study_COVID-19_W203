@@ -1,0 +1,36 @@
+---
+title: 'Title!'
+author: "Autumn Rains, Jonas Degnan, Lucy Wu"
+date: "8/5/2021"
+output:
+  bookdown::pdf_document2: 
+    toc: true
+---
+
+\clearpage
+
+```{r install packages, echo=FALSE, warning=FALSE, message=FALSE}
+# install.packages('tinytex')
+# tinytex::install_tinytex()
+```
+
+
+```{r load packages, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse) 
+library(magrittr)
+library(knitr)
+library(patchwork)
+library(kableExtra)
+library(tinytex)
+
+theme_set(theme_bw())
+
+options(tinytex.verbose = TRUE)
+```
+
+```{r load clean data, echo=FALSE, message=FALSE}
+
+
+```
+
+
