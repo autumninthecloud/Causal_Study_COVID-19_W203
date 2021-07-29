@@ -22,13 +22,12 @@ library(anytime)
 ```{r read in data, echo=FALSE}
 d_covid <- read.csv(url('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties-recent.csv'))
 d_openings <- read.csv(file = './../../data/raw/COVID-19 US state policy database (CUSP) - Closures & Reopening.csv')
-d_trips <- read.csv(file = './../../data/raw/Trips_by_Distance_-_2020.csv')
-
+d_trips <- read.csv(file = './../../data/raw/Trips_by_Distance.csv')
 ```
 
 ```{r filter parameters, echo=FALSE}
 # state(s) under investigation
-state_id = c("OH","Ohio",39)
+state_id = c("TX","Texas")
 
 # dates under investigation
 start_date = as.Date("2021-06-01")
@@ -67,48 +66,41 @@ d_covid <- d_covid %>%
  
 # filters by date/state
 d_trips <- d_trips %>%
-  filter(d_trips, 
-         Date >= "4/1/2020", Date <= "4/2/2020",
-         grepl(paste(state_id, collapse = "|"), State.Postal.Code)
-         )
+  mutate(
+    Date = as.Date(Date)
+  ) %>%
+  filter(
+    Date >= start_date, Date <= end_date,
+    grepl(paste(state_id, collapse = "|"), State.Postal.Code)
+  )
   
 # cleaning
-d_trips_filter <- d_trips %>%
-  
-  mutate(County.Name = gsub("([A-Za-z]+).*", "\\1", County.Name)) %>%
-  group_by(County.Name) %>%
-  rowwise() %>%
+d_trips <- d_trips %>%
+  # clean county name format
   mutate(
-    # clean county name format
     County.Name = gsub("([A-Za-z]+).*", "\\1", County.Name),
-    # total pop
-    total_pop = sum(c_across(Population.Staying.at.Home:Population.Not.Staying.at.Home)),
-    # define long trips per capita
+    total_pop = select(.,Population.Staying.at.Home:Population.Not.Staying.at.Home) %>% rowSums(na.rm = TRUE)
+    ) %>%
+  group_by(County.FIPS) %>%
+  mutate(
+    # define long trips
     long_trip = sum(c_across(Number.of.Trips.100.250:Number.of.Trips...500)),
-    long_trips_pc = long_trip/total_pop,
-    # # define short trips per capita
+    long_trip_pc = long_trip/total_pop,
+    # define short trips
     short_trip = sum(c_across(Number.of.Trips.1.3:Number.of.Trips.50.100)),
-    short_trips_pc = short_trip/total_pop
-    # #
+    short_trip_pc = short_trip/total_pop
   ) %>%
   rename(
     state = State.Postal.Code,
     county = County.Name
   ) %>%
   select(
-    county, state, total_pop, long_trip, long_trips_pc, short_trip, short_trips_pc
+    county, County.FIPS, state, total_pop, long_trip, long_trip_pc, short_trip, short_trip_pc
   ) %>%
-  distinct(county, .keep_all = TRUE)
-  
-  # filter(State.Postal.Code %in% c(state[1])) 
-  
-  # filter(State.Postal.Code %in% c("AL"), grepl("Aut",County.Name)) 
+  distinct(County.FIPS, .keep_all = TRUE)
+```
 
-trips_col <- ddply(d_trips, "County.Name", numcolwise(sum))
-
-#clean county name format
-trips_col$county <- gsub("([A-Za-z]+).*", "\\1", trips_col$County.Name)
-
+```{r merged dataframe, echo=FALSE}
 #code to merge state info to d
 d <- merge(x = trips_col, y = covid_col, by = "county")
 d <- merge(x = d, y = d_trips[ , c("county", "State.Postal.Code")], by = "county", all.x=TRUE)
@@ -123,5 +115,7 @@ d <- merge(x = d, y = d_openings[ , c("State.Postal.Code", "strict")], by = "Sta
 d <- d %>% drop_na()
 d <- unique(d)
 ```
+
+
 
 
