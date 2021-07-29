@@ -116,7 +116,7 @@ d <- unique(d)
 # d <- merge(x = d, y = d_openings[ , c("State.Postal.Code", "strict")], by = "State.Postal.Code", all.x = TRUE)
 ```
 ```{r export interim dataframe as csv, echo=FALSE}
-
+write.csv(d, '../../data/interim/covid_trips_interim.csv')
 ```
 
 
