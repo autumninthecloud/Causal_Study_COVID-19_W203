@@ -13,36 +13,40 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r import libraries, echo=FALSE, warning=FALSE}
+```{r import libraries, echo=FALSE, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(anytime)
 # source(local=TRUE, file="../util.R")
 ```
 
 ```{r read in data, echo=FALSE}
-
-d_covid <- read.csv(file = './../../data/raw/covid-counties.csv')
+d_covid <- read.csv(url('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties-recent.csv'))
 d_openings <- read.csv(file = './../../data/raw/COVID-19 US state policy database (CUSP) - Closures & Reopening.csv')
 d_trips <- read.csv(file = './../../data/raw/Trips_by_Distance_-_2020.csv')
 
 ```
 
-
-```{r clean covid data, echo=FALSE}
+```{r filter parameters, echo=FALSE}
 # state(s) under investigation
 state_id = c("OH","Ohio",39)
 
 # dates under investigation
-start_date = "2020-04-01"
-end_date = "2020-04-30"
+start_date = as.Date("2021-06-01")
+end_date = as.Date("2021-06-30")
+```
 
+
+```{r clean covid data, echo=FALSE}
 # COVID-19 data
 # filters by date/state
 d_covid <- d_covid %>%
-  filter(d_covid, 
-         date >= start_date, date <= end_date,
-         grepl(paste(state_id, collapse = "|"), state)
-         )
+  mutate(
+    date = as.Date(date)
+  ) %>%
+  filter(
+    date >= start_date, date <= end_date,
+    grepl(paste(state_id, collapse = "|"), state)
+  )
 
 # aggregate county data
 d_covid <- d_covid %>%
@@ -60,7 +64,7 @@ d_covid <- d_covid %>%
 
 ```{r clean mobility data, echo=FALSE}
 # clean mobility data
-
+ 
 # filters by date/state
 d_trips <- d_trips %>%
   filter(d_trips, 
