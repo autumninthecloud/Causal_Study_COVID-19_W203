@@ -27,7 +27,7 @@ d_trips <- read.csv(file = './../../data/raw/Trips_by_Distance.csv')
 
 ```{r filter parameters, echo=FALSE}
 # state(s) under investigation
-state_id = c("TX","Texas")
+state_id = c("TX","Texas",48)
 
 # dates under investigation
 start_date = as.Date("2021-06-01")
@@ -92,28 +92,31 @@ d_trips <- d_trips %>%
   ) %>%
   rename(
     state = State.Postal.Code,
-    county = County.Name
+    county = County.Name,
+    fips = County.FIPS
   ) %>%
   select(
-    county, County.FIPS, state, total_pop, long_trip, long_trip_pc, short_trip, short_trip_pc
+    county, fips, state, total_pop, long_trip, long_trip_pc, short_trip, short_trip_pc
   ) %>%
-  distinct(County.FIPS, .keep_all = TRUE)
+  distinct(fips, .keep_all = TRUE)
 ```
 
 ```{r merged dataframe, echo=FALSE}
-#code to merge state info to d
-d <- merge(x = trips_col, y = covid_col, by = "county")
-d <- merge(x = d, y = d_trips[ , c("county", "State.Postal.Code")], by = "county", all.x=TRUE)
-
-#merge county policies to d
-d_openings$strict <- d_openings$Closed.bars.x2 != "0"
-
-d_openings$State.Postal.Code <- d_openings$State.Abbreviation
-d <- merge(x = d, y = d_openings[ , c("State.Postal.Code", "strict")], by = "State.Postal.Code", all.x = TRUE)
+#code to merge county info to d
+d <- merge(x = d_trips, y = d_covid, by = "fips")
 
 #drop na and duplicates
 d <- d %>% drop_na()
 d <- unique(d)
+
+#merge county policies to d
+# d_openings$strict <- d_openings$Closed.bars.x2 != "0"
+
+# d_openings$State.Postal.Code <- d_openings$State.Abbreviation
+# d <- merge(x = d, y = d_openings[ , c("State.Postal.Code", "strict")], by = "State.Postal.Code", all.x = TRUE)
+```
+```{r export interim dataframe as csv, echo=FALSE}
+
 ```
 
 
