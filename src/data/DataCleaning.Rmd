@@ -15,7 +15,6 @@ When you click the **Knit** button a document will be generated that includes bo
 
 ```{r import libraries, echo=FALSE, message=FALSE, warning=FALSE}
 library(tidyverse)
-library(anytime)
 # source(local=TRUE, file="../util.R")
 ```
 
@@ -103,7 +102,7 @@ d_trips <- d_trips %>%
 
 ```{r merged dataframe, echo=FALSE}
 #code to merge county info to d
-d <- merge(x = d_trips, y = d_covid, by = "fips")
+d <- merge(x = d_trips, y = d_covid, by = c("fips", "county", "state"))
 
 #drop na and duplicates
 d <- d %>% drop_na()
