@@ -2,22 +2,47 @@
 title: "Section_8_Team1_Lab2_Report"
 author: "Degnan, Rains, Wu"
 date: "8/1/2021"
-output: word_document
+output:
+  html_document:
+    df_print: paged
+  word_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
 ```
 
 ## Introduction
 
 Summertime vacations in the United States are synonymous with sunny days spent with loved ones. As Ella Fitzgerald so aptly sings, “Summertime, and the living is easy.” However, travel in the recent peak-vacation months has certainly deviated from this idealistic frame of mind with the onset of the COVID-19 pandemic in early 2020. The global travel industry has experienced sharp declines. In the United States, “travel spending totaled a mere $679 billion in 2020, an unprecedented 42% annual decline (nearly $500 billion) from 2019,” according to analysis from the U.S. Travel Association. 
 As infection and vaccination rates oscillate along with government policies for business operation restrictions in the United States, our team of data scientists will look to answer this research question in more detail using linear regression techniques: 
+
 Do COVID infection rates impact vacation travel distance for U.S. residents in the state of Texas? 
 How does income, population density, and covid regulations in each county impact traveling? 
+
 We will analyze datasets pertaining to these variables for Texas counties and create several models to understand if causal relationships exist between distance traveled, population income, population density (rural or non-rural counties), and regulations.
 
 ## Operationalization
+
+### Variables
+
+For our analysis, we will use datasets and variables from the four following sources:
+
+[![DataSources](lab2datatable.JPG)](https://ibb.co/zQ3yj2K)
+
+As indicated, each source will provide information on county population demographics such as income, rural vs. urban classification, and status of pandemic regulations. Together, these sources were filtered for the state of Texas and combined to create a dataframe for analysis.
+
+```{r dataframe}
+#head(dataframe)
+
+```
+
+### Exploratory Data Analysis
+
+
+
 
 ## A Model Building Process
 
