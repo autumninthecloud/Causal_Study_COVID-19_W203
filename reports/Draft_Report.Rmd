@@ -9,7 +9,19 @@ output:
   pdf_document: default
 ---
 
-```{r setup, include=FALSE}
+```{r setup, message=FALSE}
+install.packages("table1")
+
+#we may not need all of these
+library(tidyverse)
+library(magrittr)
+library(ggplot2)
+library(patchwork)
+library(sandwich)
+library(lmtest)
+library(dplyr)
+library(table1)
+theme_set(theme_minimal())
 knitr::opts_chunk$set(echo = TRUE)
 
 ```
@@ -34,35 +46,64 @@ For our analysis, we will use datasets and variables from the four following sou
 
 As indicated, each source will provide information on county population demographics such as income, rural vs. urban classification, and status of pandemic regulations. Together, these sources were filtered for the state of Texas and combined to create a dataframe for analysis.
 
-```{r dataframe}
-#head(dataframe)
+```{r dataframe, echo=FALSE}
+df <- read.csv('~/lab-2-lab2_section8_jal/data/interim/covid_trips_interim.csv')
+head(df)
 
 ```
 
-### Exploratory Data Analysis
 
+### Accounting Tables
+```{r Accounting Table creation & output}
+```
 
+#### Additional Changes to the Data:
+
+Upon final review of the dataset, there are no additional changes required to prepare the dataset for further exploration and model creation. Outliers or incorrect data are not observed upon final inspection. The Accounting Tables capture the changes made through cleaning and filtering as indicated previously.
+
+## Exploratory Data Analysis
+
+```{r EDA}
+#Example Table
+table1::label(df$total_pop) <- "TX County Population"
+table1::label(df$sum_cases) <- "TX County Covid-19 Cases"
+
+table1::table1(~total_pop + sum_cases | state, data = df)
+
+#probably going to have to transform total_pop
+
+ggplot(df, aes(x=total_pop)) + geom_histogram(bins=100) 
+ggplot(df, aes(x=sum_cases)) + geom_histogram(bins=100)
+ggplot(df, aes(x=sum_deaths)) + geom_histogram(bins=100) 
+ggplot(df, aes(x=long_trip)) + geom_histogram(bins=100)
+  
+
+```
 
 
 ## A Model Building Process
 
 ## Linear Regression Results
 
-## Discussion: Model Limitations
+## Discussion
+###Model Limitations
 
-## Discussion: Omitted Variable 
+```{r CLM assumptions check}
+
+#run this to display the CLM grapsh needed to verify CLM assumptions met
+#par(mfrow = c(2, 2))
+#plot(model)
+
+```
+
+###Omitted Variable 
+
+<!-- If the team has taken up an explanatory (i.e. causal) question to evaluate, then identify what you think are the most important omitted variables that bias results you care about. For each variable you name, you should reason about the direction of bias caused by omitting this variable. If you can argue whether the bias is large or small, that is even better. State whether you have any variables available that may proxy (even imperfectly) for the omitted variable. Pay particular attention to whether each omitted variable bias is towards zero or away from zero. You will use this information to judge whether the effects you find are likely to be real, or whether they might be entirely an artifact of omitted variable bias. -->
+
+#### Variable 1
+#### Variable 2
 
 ## Conclusion & Next Steps
 
 ## References
 
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
