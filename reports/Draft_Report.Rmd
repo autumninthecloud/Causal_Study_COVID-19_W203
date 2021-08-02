@@ -28,13 +28,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Introduction
 
-Summertime vacations in the United States are synonymous with sunny days spent with loved ones. As Ella Fitzgerald so aptly sings, “Summertime, and the living is easy.” However, travel in the recent peak-vacation months has certainly deviated from this idealistic frame of mind with the onset of the COVID-19 pandemic in early 2020. The global travel industry has experienced sharp declines. In the United States, “travel spending totaled a mere $679 billion in 2020, an unprecedented 42% annual decline (nearly $500 billion) from 2019,” according to analysis from the U.S. Travel Association. 
-As infection and vaccination rates oscillate along with government policies for business operation restrictions in the United States, our team of data scientists will look to answer this research question in more detail using linear regression techniques: 
+Summer vacations in the United States are synonymous with sunny, leisurely days spent with loved ones. As Ella Fitzgerald so aptly sings, “Summertime, and the living is easy.” However, travel in the recent peak-vacation months has certainly deviated from this idealistic frame of mind with the onset of the COVID-19 pandemic in early 2020. The global travel industry has experienced sharp declines. Specifically in the United States, “travel spending totaled a mere $679 billion in 2020, an unprecedented 42% annual decline (nearly $500 billion) from 2019,” according to analysis from the U.S. Travel Association. 
+As infection and vaccination rates oscillate regionally along with government policies for business operation restrictions in the United States, our team of data scientists will look to answer the following research question in more detail using linear regression techniques: 
 
 Do COVID infection rates impact vacation travel distance for U.S. residents in the state of Texas? 
 How does income, population density, and covid regulations in each county impact traveling? 
 
-We will analyze datasets pertaining to these variables for Texas counties and create several models to understand if causal relationships exist between distance traveled, population income, population density (rural or non-rural counties), and regulations.
+We will analyze datasets pertaining to these variables for Texas counties and create three models to understand if causal relationships exist between distance traveled, population income, population density (rural or urban counties), and government regulations. Our hypothesis is that an there is a causal relationship between """
 
 ## Operationalization
 
@@ -54,12 +54,41 @@ head(df)
 
 
 ### Accounting Tables
+
+To demonstrate the operationalization of the data, Tables 1 and 2 below display the original value counts from the dataset as well as how many values were removed as a part of filtering the dataset to remove all states except Texas. For the analysis, $$### responses were analyzed as shown in Table 1. Table 2 depicts the county type breakdown for rural or urban classification as well. 
+
 ```{r Accounting Table creation & output}
+
+step_num = c(1,2,3)
+
+number_of_samples = c(nrow(df),
+                      nrow(#newdf1),
+                      nrow(#newdf2))                      
+samples_removed = c(0,
+                    nrow(df)-nrow(#newdf1),
+                    nrow(#newdf1)-nrow(#newdf2))
+                    
+reasoning = c("Original Dataset",
+              "Removing XYZ",
+              "Removing 123")
+
+accounting_df <- data.frame(step_num,
+                            number_of_samples,
+                            samples_removed,
+                            reasoning)
+
+# knitr::kable(accounting_df)
+colnames(accounting_df) <- c('Step','Number of Samples','Samples Removed', 'Reason')
+knitr::kable(accounting_df, caption="Accounting Table", align = "c")
+
+# final_depRep_tab_df = dplyr::count(Q2_df, DemorRep, sort = TRUE)
+# colnames(final_depRep_tab_df) <- c('Voter Party', 'Number of Samples')
+# knitr::kable(final_depRep_tab_df, caption="Final Samples by Party", align = "c")
 ```
 
 #### Additional Changes to the Data:
 
-Upon final review of the dataset, there are no additional changes required to prepare the dataset for further exploration and model creation. Outliers or incorrect data are not observed upon final inspection. The Accounting Tables capture the changes made through cleaning and filtering as indicated previously.
+Upon final review of the dataset, there are no additional changes required to prepare the dataset for data exploration and subsequent model creation. Outliers or incorrect data are not observed upon final inspection. The Accounting Tables capture the changes made through cleaning and filtering as indicated previously.
 
 ## Exploratory Data Analysis
 
@@ -80,19 +109,33 @@ ggplot(df, aes(x=long_trip)) + geom_histogram(bins=100)
 
 ```
 
+Upon transformation of the data based on the figures above, we can see that poupulation size...
 
 ## A Model Building Process
 
 ## Linear Regression Results
+
+```{r model creation}
+
+model <- lm(, data = )
+model2 <- lm(, data = )
+model3 <- lm(, data = ) #final model
+
+
+```
 
 ## Discussion
 ###Model Limitations
 
 ```{r CLM assumptions check}
 
-#run this to display the CLM grapsh needed to verify CLM assumptions met
+#run this to display the CLM graphs needed to verify CLM assumptions met
 #par(mfrow = c(2, 2))
-#plot(model)
+#plot(model2)
+
+##FINAL MODEL
+#par(mfrow = c(2, 2))
+#plot(model3)
 
 ```
 
