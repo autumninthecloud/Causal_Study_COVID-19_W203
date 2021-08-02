@@ -9,7 +9,7 @@ library(tidyverse)
 ```
 
 ```{r read in data, echo=FALSE}
-d_covid <- read.csv(url('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties-recent.csv'))
+d_covid <- read.csv(url('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv'))
 d_openings <- read.csv(file = './../../data/raw/COVID-19 US state policy database (CUSP) - Closures & Reopening.csv')
 d_trips <- read.csv(file = './../../data/raw/Trips_by_Distance.csv')
 ```
@@ -21,6 +21,9 @@ state_id = c("TX","Texas",48)
 # dates under investigation
 start_date = as.Date("2021-06-01")
 end_date = as.Date("2021-06-30")
+
+# start_date = as.Date("2021-06-01")
+# end_date = as.Date("2021-06-30")
 ```
 
 
@@ -32,20 +35,20 @@ d_covid <- d_covid %>%
     date = as.Date(date)
   ) %>%
   filter(
-    date >= start_date, date <= end_date,
+    (date >= start_date & date <= end_date),
     grepl(paste(state_id, collapse = "|"), state)
   )
 
-# aggregate county data
+# max county data (cases and deaths are cumulative)
 d_covid <- d_covid %>%
   group_by(fips) %>%
   mutate(
-    sum_cases = sum(cases),
-    sum_deaths = sum(deaths),
+    cases = max(cases) - min(cases),
+    deaths = max(deaths) - min(cases),
     state = state.abb[match(state, state.name)]
   ) %>%
   select(
-    county, state, fips, sum_cases, sum_deaths
+    county, state, fips, cases, deaths
   ) %>%
   distinct(fips, .keep_all = TRUE)
 ```
@@ -59,7 +62,7 @@ d_trips <- d_trips %>%
     Date = as.Date(Date)
   ) %>%
   filter(
-    Date >= start_date, Date <= end_date,
+    (Date >= start_date & Date <= end_date),
     grepl(paste(state_id, collapse = "|"), State.Postal.Code)
   )
   
