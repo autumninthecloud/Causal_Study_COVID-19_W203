@@ -44,7 +44,7 @@ d_covid <- d_covid %>%
   group_by(fips) %>%
   mutate(
     cases = max(cases) - min(cases),
-    deaths = max(deaths) - min(cases),
+    deaths = max(deaths) - min(deaths),
     state = state.abb[match(state, state.name)]
   ) %>%
   select(
