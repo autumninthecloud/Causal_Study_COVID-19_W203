@@ -1,5 +1,10 @@
 # Data dictionaries, manuals, and all other explanatory materials.
 
+## Data Descriptions
+Rural:
+  - [What is rural?](https://mtgis-portal.geo.census.gov/arcgis/apps/MapSeries/index.html?appid=49cd4bc9c8eb444ab51218c1d5001ef6)
+
+
 ## Variables
 
 Outcome variable:
