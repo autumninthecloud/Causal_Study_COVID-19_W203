@@ -4,6 +4,10 @@ County attributes:
     - Accessed: 07/24/2021
   - [Adjacent counties](https://www.census.gov/geographies/reference-files/2010/geo/county-adjacency.html)
     - Accessed: 07/26/2021
+  Econometrics:
+    - [Weekly Claims by County](https://www.twc.texas.gov/files/agency/weekly-claims-by-county-twc.xlsx)
+      - Texas county weekly unemployment claims
+      - Accessed: 08/03/2021
 
   Mobility:
     - [Trips by distance](https://data.bts.gov/Research-and-Statistics/Trips-by-Distance/w96p-f2qv)
