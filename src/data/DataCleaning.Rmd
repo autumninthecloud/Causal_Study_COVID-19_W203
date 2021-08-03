@@ -111,11 +111,12 @@ dp05_age <- read.csv(file = './../../data/raw/ACSDP1Y2019.DP05_data_with_overlay
 s1901_income <- read.csv(file = './../../data/raw/ACSST1Y2019.S1901_data_with_overlays_2021-07-21T222906.csv') 
 urb_rur_h2 <- read.csv(file = './../../data/raw/DECENNIALSF12010.H2_data_with_overlays_2021-06-08T173848.csv') 
 
+unemp_claims <- readxl::read_excel("./../../data/raw/weekly-claims-by-county-twc.xlsx")
+
 ```
 
 
 ```{r clean dp03 data, echo=FALSE}
-# filters by date/state
 econ <- dp03_econ %>%
   rename(fips = GEO_ID, unemp_rate = DP03_0009PE) %>%
   select(fips, unemp_rate) %>%
@@ -126,6 +127,30 @@ econ <- dp03_econ %>%
 
 # merge into main dataframe
 d <- merge(x = econ, y = d, by = c("fips"))
+```
+```{r clean twc unemployment data, echo=FALSE}
+
+uclaims <- unemp_claims[-c(1,2),] %>%
+  select(TEXAS,
+         ...6,
+         ...7,
+         ...8,
+         ...9
+         ) %>% 
+  rowwise() %>%
+  mutate(
+    ...6 = as.integer(...6),
+    ...7 = as.integer(...7),
+    ...8 = as.integer(...8),
+    ...9 = as.integer(...9),
+    total_claims = sum(c(...6, ...7, ...8, ...9))
+  ) %>%
+  rename(
+    county = TEXAS
+  ) %>% drop_na()
+
+# merge into main dataframe
+d <- merge(x = select(uclaims, c(county, total_claims)), y = d, by = c("county"))
 ```
 
 
