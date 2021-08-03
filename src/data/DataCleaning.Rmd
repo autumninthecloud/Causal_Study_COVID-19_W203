@@ -156,9 +156,9 @@ age <- dp05_age %>%
     pct_45to54 = as.double(pct_45to54),
     pct_gt55 = 100 - sum(c(pct_lt5, pct_5to9, pct_10to14, pct_15to19, pct_20to24, pct_25to34, pct_35to44, pct_45to54)),
     pct_lt19 = sum(c(pct_lt5, pct_5to9, pct_10to14, pct_15to19)),
-    pct_10to54 = 100 - pct_gt55 - pct_lt19
+    pct_19to54 = 100 - pct_gt55 - pct_lt19
     ) %>%
-  select(fips, pct_lt19, pct_10to14, pct_gt55)
+  select(fips, pct_lt19, pct_19to54, pct_gt55)
 
 # merge into main dataframe
 d <- merge(x = age, y = d, by = c("fips"))
