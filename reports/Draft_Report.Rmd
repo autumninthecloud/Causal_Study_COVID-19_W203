@@ -1,7 +1,7 @@
 ---
 title: "Section_8_Team1_Lab2_Report"
 author: "Degnan, Rains, Wu"
-date: "8/1/2021"
+date: "8/5/2021"
 output:
   html_document:
     df_print: paged
@@ -37,7 +37,7 @@ As infection and vaccination rates oscillate regionally along with government po
 Do COVID infection rates impact vacation travel distance for U.S. residents in the state of Texas? 
 How does income, population density, and covid regulations in each county impact traveling? 
 
-We will analyze datasets pertaining to these variables for Texas counties and create three models to understand if causal relationships exist between distance traveled, population income, population density (rural or urban counties), and government regulations. Our hypothesis is that an there is a causal relationship between """
+We will analyze datasets pertaining to these variables for Texas counties and create three models to understand if causal relationships exist between distance traveled, population income, population density (rural or urban counties), and government regulations. The outcome variable will be distance traveled. The predictor varialbes will be income, county type (rural or urban), and policy regulations around Covid-19. Our hypothesis is that an there is a causal relationship between these predictor variables and the outcome variable.
 
 ## Operationalization
 
@@ -58,7 +58,7 @@ For our analysis, we will use datasets and variables from the four following sou
 As indicated, each source will provide information on county population demographics such as income, rural vs. urban classification, and status of pandemic regulations. Together, these sources were filtered for the state of Texas and combined to create a dataframe for analysis.
 
 ```{r dataframe, echo=FALSE}
-df <- read.csv('/home/jovyan/r_bridge/code/lab-2-lab2_section8_jal/data/interim/covid_trips_interim.csv')
+df <- read.csv('~/lab-2-lab2_section8_jal/data/interim/covid_trips_interim.csv')
 head(df)
 
 ```
@@ -66,35 +66,35 @@ head(df)
 
 ### Accounting Tables
 
-To demonstrate the operationalization of the data, Tables 1 and 2 below display the original value counts from the dataset as well as how many values were removed as a part of filtering the dataset to remove all states except Texas. For the analysis, $$### responses were analyzed as shown in Table 1. Table 2 depicts the county type breakdown for rural or urban classification as well. 
+To demonstrate the operationalization of the data, Tables 1 and 2 below display the original value counts from the dataset as well as how many values were removed as a part of filtering the dataset to remove all states except Texas. For the analysis, 230 responses were analyzed as shown in Table 1. Table 2 depicts the county type breakdown for rural or urban classification as well. 
 
 ```{r Accounting Table creation & output}
 
-step_num = c(1,2,3)
+step_num = c(1,2)
 
-number_of_samples = c(nrow(df),
-                      nrow(#newdf1),
-                      nrow(#newdf2))                      
+number_of_samples = c(nrow(df), #Need dataframe for all US
+                      nrow(df)) 
+                                            
 samples_removed = c(0,
-                    nrow(df)-nrow(#newdf1),
-                    nrow(#newdf1)-nrow(#newdf2))
+                    nrow(df)-nrow(df))
+                    
                     
 reasoning = c("Original Dataset",
-              "Removing XYZ",
-              "Removing 123")
+              "Filtered for Texas Only")
 
 accounting_df <- data.frame(step_num,
                             number_of_samples,
                             samples_removed,
                             reasoning)
 
-# knitr::kable(accounting_df)
+knitr::kable(accounting_df)
 colnames(accounting_df) <- c('Step','Number of Samples','Samples Removed', 'Reason')
 knitr::kable(accounting_df, caption="Accounting Table", align = "c")
 
-# final_depRep_tab_df = dplyr::count(df, #df2, sort = TRUE)
-# colnames(final_depRep_tab_df) <- c('County Type', 'Number of Samples')
-# knitr::kable(final_depRep_tab_df, caption="Final Samples by County", align = "c")
+#Need to create column category of rural vs urban - will create a summary table below with this
+# final_tab_df = dplyr::count(df, df, sort = TRUE)
+# colnames(final_tab_df) <- c('County Type', 'Number of Samples')
+# knitr::kable(final_tab_df, caption="Final Samples by County", align = "c")
 ```
 
 
@@ -108,19 +108,29 @@ Upon final review of the dataset, there are no additional changes required to pr
 ```{r EDA}
 #Example Table
 table1::label(df$total_pop) <- "TX County Population"
-table1::label(df$sum_cases) <- "TX County Covid-19 Cases"
+table1::label(df$cases) <- "TX County Covid-19 Cases"
 
-table1::table1(~total_pop + sum_cases | state, data = df)
+table1::table1(~total_pop + cases | state, data = df)
 
 #probably going to have to transform total_pop
 
-ggplot(df, aes(x=total_pop)) + geom_histogram(bins=100))
-ggplot(df, aes(x=sum_cases)) + geom_histogram(bins=100)
-ggplot(df, aes(x=sum_deaths)) + geom_histogram(bins=100) 
+ggplot(df, aes(x=total_pop)) + geom_histogram(bins=100)
+ggplot(df, aes(x=cases)) + geom_histogram(bins=100)
+ggplot(df, aes(x=deaths)) + geom_histogram(bins=100) 
 ggplot(df, aes(x=long_trip)) + geom_histogram(bins=100)
 
-ggpairs(df, columns = 1:ncol(data), title = "EDA: Variable Correlation",  
-  axisLabels = "show", columnLabels = colnames(data[, columns]))
+df_test <- df
+
+
+df_test <- df_test %>% mutate(County_Class = 
+               case_when(df_test$total_pop <= 99999 ~ "Rural", 
+                         df_test$total_pop >= 100000 ~ "Urban"))
+
+# df_test$County_Rural <- ifelse(df_test$County_Class == "Rural", 1, 0) #will be useful for model
+# df_test$County_Class <- as.factor(df_test$County_Class) #this turns 
+
+ggpairs(df_test, columns = 5:(ncol(df)-1), title = "EDA: Variable Correlation",  
+  axisLabels = "show", aes(colour = County_Class, alpha = 0.4))
 
 ```
 
@@ -148,6 +158,8 @@ coeftest(model3, vcov = vcovHC(model3, type="HC1"))
 ## Discussion
 ###Model Limitations
 
+<!-- Add language for model 2 and model 3 about CLM assumptions. -->
+
 ```{r CLM assumptions check}
 
 #run this to display the CLM graphs needed to verify CLM assumptions met
@@ -173,6 +185,10 @@ One example of an omitted variable that may cause bias in our model is that of v
 Another example of an omitted variable that may also cause bias in our model is fuel prices. Whether this is jet fuel or gasoline, fluctuations in this commodity would certainly impact travel costs. If fuel prices increase, it is generally observed that costs for travel increase. The opposite is also generally true. In the instance of increased fuel prices, this would influence our model by driving the bias closer to zero as distance traveled would drop. Conversely, if fuel prices for the time period of the sample for the population were lower, the bias would would be farther from zero.
 
 ## Conclusion & Next Steps
+
+Based upon the linear regression analysis above, it is observed that there may be a causal relationship between XX and YY. The hypothesis posed within the introduction is 'failed to be rejected/ rejected.' ....
+
+For future analysis, it is recommended that Covid-19 policy adherence data per county be incorporated into the model to increase the accuracy. While the Govenor of Texas issued detailed protocols or mandates for the state of Texas, the degree to which each county (and thus the individual residents) complied would be useful data to have if such data were to exist.
 
 ## References
 
