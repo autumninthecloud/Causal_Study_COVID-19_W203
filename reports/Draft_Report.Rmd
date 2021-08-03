@@ -38,6 +38,14 @@ We will analyze datasets pertaining to these variables for Texas counties and cr
 
 ## Operationalization
 
+To create our dataframe, we cleaned and filtered data from multiple sources of data and joined based on texas county name or code. 
+
+#### Operationalization of focus variables
+We gathered covid case and death data from NYT. We gathered trip distance data from the Bureau of Transportation, which they record based on data gathered from personal mobile devices. This data was presented as number of travelers in binned distances. We defined a short trip as less than 100 miles and long trips as greater than 100 miles. This was decided under the assumption that distances traveled of less than 100 miles are for the purpose of commuting, while greater than 100 miles indicated vacation travel.
+
+#### Operationalization of additional variables
+To enrich our model and limit OVB, we brainstormed a number of additional variables that could affect travel rates during covid. For one, we looked at location due to the assumption that those who live in rural settings are likely to commute farther than those in an urban setting. We also looked at age, gender, income demographics. Finally, we pulled in data for county population to normalize all the data on a per capita basis. 
+
 ### Variables
 
 For our analysis, we will use datasets and variables from the four following sources:
@@ -47,7 +55,7 @@ For our analysis, we will use datasets and variables from the four following sou
 As indicated, each source will provide information on county population demographics such as income, rural vs. urban classification, and status of pandemic regulations. Together, these sources were filtered for the state of Texas and combined to create a dataframe for analysis.
 
 ```{r dataframe, echo=FALSE}
-df <- read.csv('~/lab-2-lab2_section8_jal/data/interim/covid_trips_interim.csv')
+df <- read.csv('/home/jovyan/r_bridge/code/lab-2-lab2_section8_jal/data/interim/covid_trips_interim.csv')
 head(df)
 
 ```
@@ -86,11 +94,13 @@ knitr::kable(accounting_df, caption="Accounting Table", align = "c")
 # knitr::kable(final_depRep_tab_df, caption="Final Samples by Party", align = "c")
 ```
 
+
 #### Additional Changes to the Data:
 
 Upon final review of the dataset, there are no additional changes required to prepare the dataset for data exploration and subsequent model creation. Outliers or incorrect data are not observed upon final inspection. The Accounting Tables capture the changes made through cleaning and filtering as indicated previously.
 
 ## Exploratory Data Analysis
+
 
 ```{r EDA}
 #Example Table
@@ -101,7 +111,7 @@ table1::table1(~total_pop + sum_cases | state, data = df)
 
 #probably going to have to transform total_pop
 
-ggplot(df, aes(x=total_pop)) + geom_histogram(bins=100) 
+ggplot(df, aes(x=total_pop)) + geom_histogram(bins=100))
 ggplot(df, aes(x=sum_cases)) + geom_histogram(bins=100)
 ggplot(df, aes(x=sum_deaths)) + geom_histogram(bins=100) 
 ggplot(df, aes(x=long_trip)) + geom_histogram(bins=100)
@@ -117,11 +127,17 @@ Upon transformation of the data based on the figures above, we can see that poup
 
 ```{r model creation}
 
-model <- lm(, data = )
+#need to change these to per capita data
+model1 <- lm(long_trip ~ cases + deaths, data = df) #limited model
 model2 <- lm(, data = )
 model3 <- lm(, data = ) #final model
 
+#Run F test to show statistical significance of additional variables
+anova(model1, model2, test = "F")
+anova(model2, model3, test = "F")
 
+#Run coeftest to show statistical significanve of all variables in the model
+coeftest(model3, vcov = vcovHC(model3, type="HC1"))
 ```
 
 ## Discussion
