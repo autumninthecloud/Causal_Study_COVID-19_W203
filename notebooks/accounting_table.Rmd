@@ -1,0 +1,51 @@
+---
+title: "accounting table"
+output: html_document
+---
+
+```{r load packages}
+library(dplyr)
+library(tinytex)
+library(knitr)
+library(kableExtra)
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r accounting-data}
+stage <- c("raw", "date_state", "county", "model_1", "model_2", "model_3")
+covid <- c(1576181, 7620, 254,230,"","")
+mobility <- c(97402, 7620, 254,230,"","")
+urb_rural <- c(3220, "value_2","","","","")
+econ <- c(3220, , )
+income <- c("value_1", "value_2","","","","")
+adjacency <- c("value_1", "value_2","","","","")
+
+df <- data.frame(stage, covid, mobility, urb_rural, income, adjacency)
+
+```
+
+``` {r make population summary table, echo=FALSE}
+accounting_summary <- table(
+    df$stage, 
+    df$covid),
+    df$mobility,
+    df$urb_rural,
+    df$income,
+    df$adjacency
+)
+# names(dimnames(party_summary)) <- c("Self-reported", "Sentiment-revealed")
+```
+
+``` {r accounting-table, echo=FALSE}
+kbl(accounting_summary, 
+    digits = 2,
+    caption = 'Accounting Table for Data Source Cleaning',
+    booktabs = TRUE) %>%
+  kable_paper(c('hover', 'striped'), full_width = T)
+```
+
+

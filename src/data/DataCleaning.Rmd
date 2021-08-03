@@ -93,7 +93,7 @@ d_trips <- d_trips %>%
   distinct(fips, .keep_all = TRUE)
 ```
 
-```{r merged dataframe, echo=FALSE}
+```{r merged model_1 dataframe, echo=FALSE}
 #code to merge county info to d
 d <- merge(x = d_trips, y = d_covid, by = c("fips", "county", "state"))
 
@@ -107,9 +107,64 @@ d <- unique(d)
 # d_openings$State.Postal.Code <- d_openings$State.Abbreviation
 # d <- merge(x = d, y = d_openings[ , c("State.Postal.Code", "strict")], by = "State.Postal.Code", all.x = TRUE)
 ```
-```{r export interim dataframe as csv, echo=FALSE}
+
+
+# Clean other variables
+```{r read in variable data, echo=FALSE}
+density <- read.delim("./../../data/raw/2019_Gaz_counties_national.txt", header=TRUE, sep="\t")
+dp03_econ <- read.csv(file = './../../data/raw/ACSDP5Y2019.DP03_data_with_overlays_2021-07-26T143523.csv')
+dp05_age <- read.csv(file = './../../data/raw/ACSDP1Y2019.DP05_data_with_overlays_2021-07-21T215013.csv')
+s1901_income <- read.csv(file = './../../data/raw/ACSST1Y2019.S1901_data_with_overlays_2021-07-21T222906.csv') 
+urb_rur_h2 <- read.csv(file = './../../data/raw/DECENNIALSF12010.H2_data_with_overlays_2021-06-08T173848.csv') 
+
+```
+
+
+```{r}
+library(dplyr)
+df = df %>% mutate(D=gsub("\\..*","",A))
+
+              A    B   C    D
+   awer.ttp.net Code 554 awer
+   abcd.ttp.net Code 747 abcd
+   asdf.ttp.net Part 554 asdf
+    xyz.ttp.net Part 747  xyz
+    
+    names(df) <- substring(names(df), 4)
+```
+
+
+```{r clean dp03 data, echo=FALSE}
+# filters by date/state
+econ <- dp03_econ %>%
+  rename(fips = GEO_ID, unemp_rate = DP03_0009PE) %>%
+  select(fips, unemp_rate) %>%
+  mutate(
+    fips = substring(fips, 10)
+  )
+
+# merge into main dataframe
+d <- merge(x = econ, y = d, by = c("fips"))
+```
+
+
+# Clean up
+```{r remove interim dataframes}
+# remove dataframes
+rm(d_covid, d_trips, d_openings)
+rm(dp03_econ, dp05_age, density, s1901_income, urb_rur_h2)
+
+```
+
+# Write to .csv
+```{r export interim model_1 dataframe as csv, echo=FALSE}
 write.csv(d, '../../data/interim/covid_trips_interim.csv')
 ```
+
+
+
+
+
 
 
 
