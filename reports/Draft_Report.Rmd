@@ -1,7 +1,7 @@
 ---
 title: "Section_8_Team1_Lab2_Report"
-author: "Degnan, Rains, Wu"
-date: "8/1/2021"
+author: "Jonas Degnan, Autumn Rains, Lucy Wu"
+date: "8/5/2021"
 output:
   html_document:
     df_print: paged
@@ -49,7 +49,6 @@ We gathered covid case and death data from NYT. We gathered trip distance data f
 
 #### Operationalization of additional variables
 To enrich our model and limit OVB, we brainstormed a number of additional variables that could affect travel rates during covid. For one, we looked at how covid affected the county, through the unemployment rate. We also looked at age, gender, income demographics. Then, in addition to income demographics, we focused on percent of younger folks, as defined as those younger than 17 and older folks as defined as those older than 65 because of the nature of how covid affects an individual.
-
 
 ### Variables
 
@@ -154,7 +153,17 @@ Upon final review of the dataset, there are no additional changes required to pr
 
 ## Linear Regression Results
 
-```{r model creation, warning=FALSE}
+To investigate the causal relationships between distance traveled and variables within the dataset, a linear regression was performed in R Studio for three models. The first model is limited to study only key variables of interest for measurment. The second model expands upon the first model to also include key explanatory variables and covariates that are hypothesized to improve performance of the previous model. The third model is all-inclusive of the variables available to the team at the time of data gathering. Details of each model analyzed and subsequent results can be found below. 
+
+$$
+  f(\text{Distance Traveled}) = \beta_0 + \beta_1 g(\text{rate})  + \beta_3 h(\text{length})
+$$ 
+
+<!-- Limited Model: The first model you include should include only the key variables you want to measure. These variables might be transformed, as determined by your EDA, but the model should include the absolute minimum number of covariates (perhaps one, or at most two-three, covariates if they are so crucial that it would be unreasonable to omit them). -->
+<!-- Model Two: One model that includes key explanatory variables and covariates that you believe advance your modeling goals without introducing too much multicollinearity or causing other issues of confounding. This model should strike a balance between accuracy and parsimony and reflect your best understanding of the relationships among key variables. -->
+<!-- Model Three: One model that includes the previous covariates, and many other covariates, erring on the side of inclusion. A key purpose of this model is to evaluate how parameters of interest change (if at all) when additional, potentially colinear variables are included in the model specification. -->
+
+```{r model creation, echo=FALSE, warning=FALSE}
 
 #need to change these to per capita data
 model1 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + median_income, data = df) #limited model
@@ -176,9 +185,9 @@ coeftest(model3, vcov = vcovHC(model3, type="HC1"))
 
 ### Model Limitations
 
-1. **IID Sampling:** There isn't a direct database check for this unfortunately. Looking into how the data was generated, we believe this is IID generally. The data was gathered from independent surveys within the Texas population for all models generated.
+1. **IID Sampling:** There isn't a direct database check for this unfortunately. Looking into how the data was generated, we believe this is IID generally. The data was gathered from independent surveys within the Texas population for all models generated across all counties.
 
-2. **No Perfect Colinearity:** This can be assessed through the variance inflation factor (VIF). Running a VIF in R in the cell below, we see the VIF score is relatively low for most predictors excluding the transformed Population Density variable. Additionally, when we view the relationship 
+2. **No Perfect Colinearity:** This can be assessed through examination of the variance inflation factor (VIF). Running a VIF in R for model 2 and model 3, we see the VIF scores are relatively low (below 5) for the predictor variables. Therefore, no predictor variables were removed from the model. The results for the VIF analysis are seen in the table below:  
 
 ```{r VIF & correlation}
 
@@ -191,11 +200,11 @@ vif_values3
 #Put values into nicer format table
 ```
 
-3. **Linear Conditional Expectation:** 'For this assumption, we are checking the residuals for linear relationships. We can view this by plotting the residuals, as seen below in the first scatter plot for both model 2 and model 3 (Residual vs Fitted). We generally see a linear line as we move across predictor values with the residuals with no strong pattern. By transforming the average rating and views (log of), we are able to see this linear relationship across all predictor values. 
+3. **Linear Conditional Expectation:** For this assumption, the residuals for linear relationships must be evaluated. By plotting the residuals, as seen below in the first scatter plot for both model 2 and model 3 ('Residual vs Fitted'). We generally see a linear line as we move across predictor values with the residuals with no strong pattern. By transforming the variables as indicated previously logarithmically, we are able to see this linear relationship across all predictor values. 
 
-4. **Homoskedastic Errors:** 'We are looking for constant error variance across the entire range of the x's ( homoskedastic errors across the range of the x's). From the residual plot below for the final model ('Final Model' figure), we can see the even or equal spread dispersion across the x values whereas with the other two models, this is not as consistent. The residual plots for the other two show increases with the value of the fitted  variables, suggesting non-constant variances in the residuals errors (or heteroscedasticity). Therefore our final model does meet this condition.  We are able to achieve this fianl plot through transfomrtion of views and average rating (log).
+4. **Homoskedastic Errors:** This assumption is examined by looking for constant error variance across the entire range of the x's (homoskedastic errors across the range of the x's). By plotting fitted values vs. the square root of the standardized residuals for the model 2 and model 3 ('Scale-Location' figure), there is an even or equal spread dispersion across the x values. Therefore model 2 and model both meet this condition when including the transformed variables.
 
-5. **Normally Distributed Errors:** We are looking for a normal distribution of the residuals. We use the QQ plot to investigate this assumption. For the final model, we see a nice linear line from the QQ plot whereas the other two previou models do not show this. We are able to achieve this fianl plot through transfomrtion of views and average rating (log). In conclusion, we meet this assumption with the final model ("Final Model" plot, model = model_transformviewsrating).
+5. **Normally Distributed Errors:** When investigating a normal distribution of the residuals, the QQ plot is helpful to investigate this assumption. For model 2 and model 3, a nice linear line can be seen between the theoretical quantities and the standardized residuals ('Normal Q-Q'). In conclusion, we meet this assumption with both model 2 and model 3.
 
 ```{r CLM assumptions check}
 
@@ -225,9 +234,9 @@ Another example of an omitted variable that may also cause bias in our model is 
 
 ## Conclusion & Next Steps
 
-Based upon the linear regression analysis above, it is observed that there may be a causal relationship between XX and YY. The hypothesis posed within the introduction is 'failed to be rejected/ rejected.' ....
+The goal of this analysis was to detrmine if there existed a causal relationship between distance traveled and Covid-19 infection rates for residents of the state of Texas. Based upon the linear regression analysis above, model 2 would indicate there may be a causal relationship between distance traveled (outcome variable) and the variables found within that model. 
 
-For future analysis, it is recommended that Covid-19 policy adherence data per county be incorporated into the model to increase the accuracy. While the Govenor of Texas issued detailed protocols or mandates for the state of Texas, the degree to which each county (and thus the individual residents) complied would be useful data to have if such data were to exist. ***Add verbiage around including vaccine rates for next steps
+For future analysis, it is recommended that Covid-19 policy adherence data per county be incorporated into the model to increase the accuracy. While the Govenor of Texas issued detailed protocols or mandates for the state of Texas, the degree to which each county (and thus the individual residents) complied would be useful data to have if such data were to exist. Additionally, incorporating vaccination rates could aid in development of a model with even higher accuracy. Generally, vaccinations could increase confidence among individuals interested in traveling, especially if they have been in long periods of quarantine or government mandated lockdowns. Last, it is highly recommended that any model generated in the future continue to use the latest data available given the oscillation in vaccination rates, government policy, and new or known variants of the Covid-19 virus.
 
 ## References
 
