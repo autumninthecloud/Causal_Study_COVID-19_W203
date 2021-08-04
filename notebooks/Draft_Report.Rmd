@@ -9,11 +9,13 @@ output:
   pdf_document: default
 ---
 
-```{r setup, message=FALSE}
+```{r install packages, message=FALSE}
 install.packages("table1")
 install.packages("GGally")
 install.packages("stargazer")
+```
 
+``` {r load packages, echo=FALSE}
 #we may not need all of these
 library(tidyverse)
 library(magrittr)
@@ -27,7 +29,7 @@ library(GGally)
 library(stargazer)
 theme_set(theme_minimal())
 knitr::opts_chunk$set(echo = TRUE)
-knitr::knit(output = "./../reports/final_report.pdf")
+#knitr::knit(input = "./../notebooks/Draft_Report.Rmd", output = "./../reports/final_report.pdf")
 ```
 
 ## Introduction
@@ -60,7 +62,6 @@ As indicated, each source will provide information on county population demograp
 
 ```{r dataframe, echo=FALSE}
 df <- read.csv('./../data/processed/covid_trips_processed.csv')
-#head(df)
 ```
 
 ## Exploratory Data Analysis
@@ -70,7 +71,6 @@ Table 1 below displays some information about the mean, median, minimum and maxi
 ```{r EDA, echo=FALSE, message=FALSE}
 #Example Table
 df$rural_cat <- ifelse(df$is_rural == 1, "Rural Counties", "Urban Counties")
-table1::label(df$total_pop) <- "County Population"
 table1::label(df$density) <- "County Population Density"
 table1::label(df$cases) <- "County Covid-19 Cases"
 table1::label(df$unemp_rate) <- "County Unemployment Rate"
@@ -78,7 +78,7 @@ table1::label(df$median_income) <- "County Median Income ($)"
 table1::label(df$pct_lt17) <- "County Age < 17 years (%)"
 table1::label(df$pct_gt65) <- "County Age > 65 years (%)"
 # table1::label(df$is_rural) <- "County Type"
-table1::table1(~total_pop + density + cases + unemp_rate + median_income + pct_lt17 + pct_gt65 | rural_cat, data = df, caption = "Table 1: Texas County Variable Statistics", topclass="Rtable1-zebra", overall = "Total")
+table1::table1(~density + cases + unemp_rate + median_income + pct_lt17 + pct_gt65 | rural_cat, data = df, caption = "Table 1: Texas County Variable Statistics", topclass="Rtable1-zebra", overall = "Total")
 
 #Short vs long trip: rate of short trips is higher than rate of long trips in relation to # of covid cases
 ggplot(data = df) + aes(x = log(cases), y = log(long_trip)) + geom_point()
@@ -88,7 +88,6 @@ Rural_County=as.factor(df$is_rural)
 
 df %>%
   mutate(
-    total_pop = log(total_pop),
     cases = log(cases+1),
     deaths = log(deaths+1),
     long_trip = log(long_trip),
