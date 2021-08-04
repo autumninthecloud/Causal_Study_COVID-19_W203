@@ -174,11 +174,11 @@ unemploy <- read.csv('./../../data/raw/TAC_unemployment.csv')
 unemploy_f <- unemploy %>%
   rename(
     county = County,
-    unempoy_rate = Unemployment.Rate....
+    unemp_rate = Unemployment.Rate....
   ) %>%
   select(
     county, 
-    unempoy_rate 
+    unemp_rate 
   )
 
 ```
@@ -194,7 +194,7 @@ knitr::kable(head(d))
 
 
 # Write to .csv
-```{r export interim model_1 dataframe as csv, echo=FALSE}
+```{r export interim model_2 dataframe as csv, echo=FALSE}
 write.csv(d, '../../data/interim/covid_trips_interim_model2.csv')
 ```
 
@@ -234,15 +234,38 @@ knitr::kable(head(d))
 
 
 # Write to .csv
-```{r export interim model_1 dataframe as csv, echo=FALSE}
+```{r export interim model_3 dataframe as csv, echo=FALSE}
 write.csv(d, '../../data/interim/covid_trips_interim_model3.csv')
 ```
+
+```{r clean unemployment data}
+d <- d %>%
+  select(
+    county,
+    long_trip,
+    cases,
+    deaths,
+    median_income,
+    is_rural,
+    unemp_rate,
+    density,
+    pct_lt17,
+    pct_gt65,
+    povery_rate
+  )
+knitr::kable(head(d))
+```
+
+# Write to .csv
+```{r export processed dataframe as csv, echo=FALSE}
+write.csv(d, '../../data/processed/covid_trips_processed.csv')
+```
+
 
 # Clean up
 ```{r remove interim dataframes}
 # remove dataframes
-rm(d_covid, d_trips, d_openings)
-rm(dp03_econ, dp05_age, density, s1901_income, urb_rur_h2, econ, income, age)
+rm(list = ls())
 
 ```
 
