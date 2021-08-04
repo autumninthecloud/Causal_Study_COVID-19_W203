@@ -1,4 +1,4 @@
-"","county","pct_lt17","pct_gt65","unempoy_rate","density","median_income","povery_rate","fips","is_rural","state","total_pop","long_trip","cases","deaths"
+"","county","pct_lt17","pct_gt65","unemp_rate","density","median_income","povery_rate","fips","is_rural","state","total_pop","long_trip","cases","deaths"
 "1","Anderson",19.02,16.48,3.6,55.01,48461,19.8,"48001",1,"TX",57735,149208,47,6
 "2","Andrews",31.02,10.91,3.1,9.85,74918,10.2,"48003",1,"TX",18705,41821,6,0
 "3","Angelina",25.44,18.63,5.1,108.77,51750,15.6,"48005",1,"TX",86715,157483,92,4
