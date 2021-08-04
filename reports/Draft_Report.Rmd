@@ -64,7 +64,7 @@ df <- read.csv('~/lab-2-lab2_section8_jal/data/interim/covid_trips_interim_model
 
 ## Exploratory Data Analysis
 
-Figure 1 below depicts the distribution and correlation of each variable in our dataset by county type (where '0' indicates an urban county). From Figure 1, it can be observed that some of the variables are not distributed normally, are skewed,  and thus require transformations. More specifically, these variables are: Total Population, Total Cases, Total Deaths, Population Density. The outcome variable, Long Distance, will also require transformation. Upon further analysis, logarithmic transformations were chosen to normalize the distribution and minimize skewness. 
+Table 1 below displays some information about the mean, median, minimum and maximum values for each variable. Figure 1 below depicts the distribution and correlation of each variable in our dataset by county type (where '0' indicates an urban county). From Figure 1, it can be observed that some of the variables are not distributed normally, are skewed,  and thus require transformations. More specifically, these variables are: Total Population, Total Cases, Total Deaths, Population Density. The outcome variable, Long Distance, will also require transformation. Upon further analysis, logarithmic transformations were chosen to normalize the distribution and minimize skewness. 
 
 ```{r EDA}
 #Example Table
@@ -100,7 +100,6 @@ df %>%
 
 ```
 
-Upon transformation of the data based on the figures above, we can see that poupulation size...
 
 ### Accounting Tables
 
@@ -114,6 +113,7 @@ df2$log_pop <- log10(df2$total_pop)
 df2$log_cases <-log10(df2$cases)
 df2$log_deaths <-log10(df2$deaths)
 df2$log_long_trip <-log10(df2$long_trip)
+df2$log_density <- log10(df2$density)
 
 step_num = c(1,2)
 
@@ -131,19 +131,19 @@ accounting_df <- data.frame(step_num,
                             samples_removed,
                             reasoning)
 
-# knitr::kable(accounting_df)
+#knitr::kable(accounting_df)
 colnames(accounting_df) <- c('Step','Number of Samples','Samples Removed', 'Reason')
 knitr::kable(accounting_df, caption="Accounting Table", align = "c")
 
-# final_depRep_tab_df = dplyr::count(Q2_df, DemorRep, sort = TRUE)
-# colnames(final_depRep_tab_df) <- c('Voter Party', 'Number of Samples')
-# knitr::kable(final_depRep_tab_df, caption="Final Samples by Party", align = "c")
+final_tab_df = dplyr::count(df2, rural_cat, sort = TRUE)
+colnames(final_tab_df) <- c('County Type', 'Number of Samples')
+knitr::kable(final_tab_df, caption="Table 2: Final Samples by County Type", align = "c")
 ```
 
 
 #### Additional Changes to the Data:
 
-Upon final review of the dataset, there are no additional changes required to prepare the dataset for data exploration and subsequent model creation. Outliers or incorrect data are not observed upon final inspection. The Accounting Tables capture the changes made through cleaning and filtering as indicated previously.
+Upon final review of the dataset, there are no additional changes required to prepare the dataset for data exploration and subsequent model creation. Outliers or incorrect data are not observed upon final inspection. The Accounting Table capture the changes made through cleaning and filtering as indicated previously. Table 2 above also displays the subset per county type for the overall dataset.
 
 ## A Model Building Process
 
