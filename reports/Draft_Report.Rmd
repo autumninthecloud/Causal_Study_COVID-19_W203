@@ -68,7 +68,7 @@ df <- read.csv('~/lab-2-lab2_section8_jal/data/interim/covid_trips_interim_model
 
 Table 1 below displays some information about the mean, median, minimum and maximum values for each variable. Figure 1 below depicts the distribution and correlation of each variable in our dataset by county type (where '0' indicates an urban county). From Figure 1, it can be observed that some of the variables are not distributed normally, are skewed,  and thus require transformations. More specifically, these variables are: Total Population, Total Cases, Total Deaths, Population Density. The outcome variable, Long Distance, will also require transformation. Upon further analysis, logarithmic transformations were chosen to normalize the distribution and minimize skewness. 
 
-```{r EDA}
+```{r EDA, echo=FALSE, message=FALSE}
 #Example Table
 df$rural_cat <- ifelse(df$is_rural == 1, "Rural Counties", "Urban Counties")
 table1::label(df$total_pop) <- "County Population"
@@ -87,7 +87,7 @@ ggplot(data = df) + aes(x = log(cases), y = log(long_trip)) + geom_point()
 
 Rural_County=as.factor(df$is_rural)
 
-df %>% 
+df %>%
   mutate(
     total_pop = log(total_pop),
     cases = log(cases+1),
@@ -95,7 +95,7 @@ df %>%
     long_trip = log(long_trip),
     density = log(density)
   ) %>%
-  select(long_trip, cases, deaths, median_income, unempoy_rate, density, pct_lt17) %>% 
+  select(long_trip, cases, deaths, median_income, unempoy_rate, density, pct_lt17) %>%
   GGally::ggpairs(.,
                legend = 1, title = "Figure 1: Variable Statistics",
                mapping = ggplot2::aes(colour=Rural_County))
@@ -108,7 +108,6 @@ df %>%
 To demonstrate the operationalization of the data, Tables 1 and 2 below display the original value counts from the dataset as well as how many values were removed as a part of filtering the dataset to remove all states except Texas. For the analysis, 230 responses were analyzed as shown in Table 1. Table 2 depicts the county type breakdown for rural or urban classification as well. 
 
 ```{r Accounting Table creation & output}
-
 df2 <- df
 
 df2$log_pop <- log10(df2$total_pop+1)
@@ -119,6 +118,7 @@ df2$log_density <- log10(df2$density+1)
 
 #summary(df2)
 df2 <- df2 %>% filter(!is.na(df2))
+
 #df2 <- df2 %>% filter(!is.infinite(df2))
 
 step_num = c(1,2)
@@ -137,7 +137,6 @@ accounting_df <- data.frame(step_num,
                             samples_removed,
                             reasoning)
 
-#knitr::kable(accounting_df)
 colnames(accounting_df) <- c('Step','Number of Samples','Samples Removed', 'Reason')
 knitr::kable(accounting_df, caption="Accounting Table", align = "c")
 
@@ -158,28 +157,44 @@ Upon final review of the dataset, there are no additional changes required to pr
 ```{r model creation, warning=FALSE}
 
 #need to change these to per capita data
-model1 <- lm(log(long_trip+1) ~ log(cases+1) + log(deaths+1) + is_rural + median_income, data = df) #limited model
-model2 <- lm(log(long_trip+1) ~ log(cases+1) + log(deaths+1) + is_rural + median_income + unempoy_rate + log(density+1), data = df)
-model3 <- lm(log(long_trip+1) ~ log(cases+1) + log(deaths+1) + is_rural + median_income + unempoy_rate + log(density+1) + pct_lt17, data = df) #final model
+model1 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + median_income, data = df) #limited model
+model2 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + median_income + unempoy_rate + log(density), data = df)
+model3 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + median_income + unempoy_rate + log(density) + pct_lt17 + pct_gt65, data = df) #final model
 
 stargazer(model1, model2, model3, type='text', title="Results", align=TRUE)
-
 
 #Run F test to show statistical significance of additional variables
 anova(model1, model2, test = "F")
 anova(model2, model3, test = "F")
 
-#Run coeftest to show statistical significance of all variables in the model
+#Run coeftest to show statistical significance of all variables in the model with robust standard errors
 coeftest(model3, vcov = vcovHC(model3, type="HC1"))
+
 ```
 
 ## Discussion
+
 ### Model Limitations
 
-1. **IID Sampling:** There isn't a direct database check for this unfortunately. Looking into how this data was generated, I belive this is IID generally. The data was gathered from independent YouTube uploaders and was a random sample.
-2. **No Perfect Colinearity:** Running a VIF in R in the cell below, we see the VIF score is relatively low for both predictors. Conceptually, we can see no perfect colinearity as we cannot perfectly describe the views variable in terms of average rating or vice versa. Additionally, from the last scatter plot above, we don't see a perfect linear relationship between the predictor variabls views or average rating.
-3. **Linear Conditional Expectation:** 'For this assumption, we are checking the residuals for linear relationships. We can view this by plotting the residuals, as seen below. We generally see a linear line as we move across predictor values with the residuals with no strong pattern. By transforming the average rating and views (log of), we are able to see this linear relationship across all predictor values. 
+1. **IID Sampling:** There isn't a direct database check for this unfortunately. Looking into how the data was generated, we believe this is IID generally. The data was gathered from independent surveys within the Texas population for all models generated.
+
+2. **No Perfect Colinearity:** This can be assessed through the variance inflation factor (VIF). Running a VIF in R in the cell below, we see the VIF score is relatively low for most predictors excluding the transformed Population Density variable. Additionally, when we view the relationship 
+
+```{r VIF & correlation}
+
+#create vector of VIF values
+vif_values2 <- car::vif(model2)
+vif_values2
+vif_values3 <- car::vif(model3)
+vif_values3
+
+#Put values into nicer format table
+```
+
+3. **Linear Conditional Expectation:** 'For this assumption, we are checking the residuals for linear relationships. We can view this by plotting the residuals, as seen below in the first scatter plot for both model 2 and model 3 (Residual vs Fitted). We generally see a linear line as we move across predictor values with the residuals with no strong pattern. By transforming the average rating and views (log of), we are able to see this linear relationship across all predictor values. 
+
 4. **Homoskedastic Errors:** 'We are looking for constant error variance across the entire range of the x's ( homoskedastic errors across the range of the x's). From the residual plot below for the final model ('Final Model' figure), we can see the even or equal spread dispersion across the x values whereas with the other two models, this is not as consistent. The residual plots for the other two show increases with the value of the fitted  variables, suggesting non-constant variances in the residuals errors (or heteroscedasticity). Therefore our final model does meet this condition.  We are able to achieve this fianl plot through transfomrtion of views and average rating (log).
+
 5. **Normally Distributed Errors:** We are looking for a normal distribution of the residuals. We use the QQ plot to investigate this assumption. For the final model, we see a nice linear line from the QQ plot whereas the other two previou models do not show this. We are able to achieve this fianl plot through transfomrtion of views and average rating (log). In conclusion, we meet this assumption with the final model ("Final Model" plot, model = model_transformviewsrating).
 
 ```{r CLM assumptions check}
@@ -191,12 +206,12 @@ title("Model 2", line = -0.75, outer = TRUE)
 
 ##FINAL MODEL
 par(mfrow = c(2, 2))
-plot(model3, col="red") 
-title("Model 2", line = -0.75, outer = TRUE)
+plot(model3, col="green") 
+title("Model 3", line = -0.75, outer = TRUE)
 
 ```
 
-###Omitted Variable 
+### Omitted Variable 
 
 <!-- If the team has taken up an explanatory (i.e. causal) question to evaluate, then identify what you think are the most important omitted variables that bias results you care about. For each variable you name, you should reason about the direction of bias caused by omitting this variable. If you can argue whether the bias is large or small, that is even better. State whether you have any variables available that may proxy (even imperfectly) for the omitted variable. Pay particular attention to whether each omitted variable bias is towards zero or away from zero. You will use this information to judge whether the effects you find are likely to be real, or whether they might be entirely an artifact of omitted variable bias. -->
 
@@ -212,7 +227,7 @@ Another example of an omitted variable that may also cause bias in our model is 
 
 Based upon the linear regression analysis above, it is observed that there may be a causal relationship between XX and YY. The hypothesis posed within the introduction is 'failed to be rejected/ rejected.' ....
 
-For future analysis, it is recommended that Covid-19 policy adherence data per county be incorporated into the model to increase the accuracy. While the Govenor of Texas issued detailed protocols or mandates for the state of Texas, the degree to which each county (and thus the individual residents) complied would be useful data to have if such data were to exist.
+For future analysis, it is recommended that Covid-19 policy adherence data per county be incorporated into the model to increase the accuracy. While the Govenor of Texas issued detailed protocols or mandates for the state of Texas, the degree to which each county (and thus the individual residents) complied would be useful data to have if such data were to exist. ***Add verbiage around including vaccine rates for next steps
 
 ## References
 
