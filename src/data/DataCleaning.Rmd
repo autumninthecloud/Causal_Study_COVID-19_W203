@@ -159,150 +159,84 @@ knitr::kable(head(d))
 
 # Write to .csv
 ```{r export interim model_1 dataframe as csv, echo=FALSE}
-write.csv(d, '../../data/interim/covid_trips_interim.csv')
-```
-
-
-
-```{r merged model_1 dataframe, echo=FALSE}
-#code to merge county info to d
-d <- merge(x = d_trips, y = d_covid, by = c("fips", "county", "state"))
-
-#drop na and duplicates
-d <- d %>% drop_na()
-d <- unique(d)
+write.csv(d, '../../data/interim/covid_trips_interim_limited.csv')
 ```
 
 
 # Model 2 data cleaning
 
+```{r load unemployment data}
+unemploy <- read.csv('./../../data/raw/TAC_unemployment.csv')
+```
+
+
+```{r clean unemployment data}
+unemploy_f <- unemploy %>%
+  rename(
+    county = County,
+    unempoy_rate = Unemployment.Rate....
+  ) %>%
+  select(
+    county, 
+    unempoy_rate 
+  )
+
+```
+
+
+```{r merge model 2 dataframe}
+d <- merge(x = unemploy_f, y = d, by = c("county"))
+d <- d %>% drop_na()
+
+knitr::kable(head(d))
+#rm(d)
+```
+
+
+# Write to .csv
+```{r export interim model_1 dataframe as csv, echo=FALSE}
+write.csv(d, '../../data/interim/covid_trips_interim_model2.csv')
+```
 
 
 # Model 3 data cleaning
 
-
-
-
-# Clean other variables
-```{r read in variable data, echo=FALSE}
-density <- read.delim("./../../data/raw/2019_Gaz_counties_national.txt", header=TRUE, sep="\t")
-dp03_econ <- read.csv(file = './../../data/raw/ACSDP5Y2019.DP03_data_with_overlays_2021-07-26T143523.csv')
-dp05_age <- read.csv(file = './../../data/raw/ACSDP1Y2019.DP05_data_with_overlays_2021-07-21T215013.csv')
-s1901_income <- read.csv(file = './../../data/raw/ACSST1Y2019.S1901_data_with_overlays_2021-07-21T222906.csv') 
-
-unemp_claims <- readxl::read_excel("./../../data/raw/weekly-claims-by-county-twc.xlsx")
-ur <- readxl::read_excel("./../../data/raw/TX_Rural_County.xlsx")
+```{r load age data}
+age <- read.csv('./../../data/raw/TAC_age.csv')
 ```
 
 
-```{r clean dp03 data, echo=FALSE}
-econ <- dp03_econ %>%
-  rename(fips = GEO_ID, unemp_rate = DP03_0009PE) %>%
-  select(fips, unemp_rate) %>%
+```{r clean unemployment data}
+age_f <- age %>%
+  rename(
+    county = County,
+    pct_lt17 = X..Age.17.and.Under
+  ) %>% rowwise() %>%
   mutate(
-    fips = substring(fips, 10),
-    unemp_rate = as.double(unemp_rate)
+    pct_gt65 = sum(c(X..Age.65.and.Older, X..Age.85.and.Older))
+  ) %>%
+  select(
+    county,
+    pct_lt17,
+    pct_gt65
   )
 
-# merge into main dataframe
-d <- merge(x = econ, y = d, by = c("fips"))
 ```
 
 
-```{r clean twc unemployment data, echo=FALSE}
+```{r merge limited model dataframe}
+d <- merge(x = age_f, y = d, by = c("county"))
+d <- d %>% drop_na()
 
-uclaims <- unemp_claims[-c(1,2),] %>%
-  select(TEXAS,
-         ...6,
-         ...7,
-         ...8,
-         ...9
-         ) %>% 
-  rowwise() %>%
-  mutate(
-    ...6 = as.integer(...6),
-    ...7 = as.integer(...7),
-    ...8 = as.integer(...8),
-    ...9 = as.integer(...9),
-    total_claims = sum(c(...6, ...7, ...8, ...9))
-  ) %>%
-  rename(
-    county = TEXAS
-  ) %>% drop_na()
-
-# merge into main dataframe
-d <- merge(x = select(uclaims, c(county, total_claims)), y = d, by = c("county"))
+knitr::kable(head(d))
+#rm(d)
 ```
 
 
-```{r clean dp03 data, echo=FALSE}
-# filters by date/state
-age <- dp05_age %>%
-  rename(fips = GEO_ID,
-         female = DP05_0003PE, 
-         pct_lt5 = DP05_0005PE, 
-         pct_5to9 = DP05_0006PE, 
-         pct_10to14 = DP05_0007PE, 
-         pct_15to19 = DP05_0008PE, 
-         pct_20to24 = DP05_0009PE, 
-         pct_25to34 = DP05_0010PE, 
-         pct_35to44 = DP05_0011PE, 
-         pct_45to54 = DP05_0012PE
-) %>% rowwise() %>%
-  mutate(
-    fips = substring(fips, 10),
-    female = as.double(female), 
-    pct_lt5 = as.double(pct_lt5), 
-    pct_5to9 = as.double(pct_5to9), 
-    pct_10to14 = as.double(pct_10to14), 
-    pct_15to19 = as.double(pct_15to19), 
-    pct_20to24 = as.double(pct_20to24), 
-    pct_25to34 = as.double(pct_25to34), 
-    pct_35to44 = as.double(pct_35to44), 
-    pct_45to54 = as.double(pct_45to54),
-    pct_gt55 = 100 - sum(c(pct_lt5, pct_5to9, pct_10to14, pct_15to19, pct_20to24, pct_25to34, pct_35to44, pct_45to54)),
-    pct_lt19 = sum(c(pct_lt5, pct_5to9, pct_10to14, pct_15to19)),
-    pct_19to54 = 100 - pct_gt55 - pct_lt19
-    ) %>%
-  select(fips, pct_lt19, pct_19to54, pct_gt55)
-
-# merge into main dataframe
-d <- merge(x = age, y = d, by = c("fips"))
+# Write to .csv
+```{r export interim model_1 dataframe as csv, echo=FALSE}
+write.csv(d, '../../data/interim/covid_trips_interim_model3.csv')
 ```
-
-```{r clean s1901 data, echo=FALSE}
-# filters by date/state
-income <- s1901_income %>%
-  rename(fips = GEO_ID,
-  median_income = S1901_C01_012E,  
-  pct_50to75k = S1901_C01_007E, 
-  pct_75to100k = S1901_C01_008E, 
-  pct_100to150k = S1901_C01_009E, 
-  pct_150to200k = S1901_C01_010E, 
-  pct_gt200k = S1901_C01_011E
-) %>% rowwise() %>%
-  mutate(
-    fips = substring(fips, 10),
-    median_income = as.double(median_income), 
-    pct_50to75k = as.double(pct_50to75k), 
-    pct_75to100k = as.double(pct_75to100k), 
-    pct_100to150k = as.double(pct_100to150k), 
-    pct_150to200k = as.double(pct_150to200k), 
-    pct_over_us_median = sum(c(pct_50to75k, pct_75to100k, pct_100to150k, pct_150to200k))) %>%
-  select(fips, median_income, pct_over_us_median)
-
-# merge into main dataframe
-d <- merge(x = income, y = d, by = c("fips"))
-```
-
-
-```{r rural indicator, echo=FALSE}
-d$rural_ind <- ifelse(d$county %in% ur$`Rural County`, 1, 0)
-
-summary(d$rural_ind)
-
-```
-
 
 # Clean up
 ```{r remove interim dataframes}
@@ -310,11 +244,6 @@ summary(d$rural_ind)
 rm(d_covid, d_trips, d_openings)
 rm(dp03_econ, dp05_age, density, s1901_income, urb_rur_h2, econ, income, age)
 
-```
-
-# Write to .csv
-```{r export interim model_1 dataframe as csv, echo=FALSE}
-write.csv(d, '../../data/interim/covid_trips_interim.csv')
 ```
 
 
