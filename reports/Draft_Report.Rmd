@@ -12,6 +12,7 @@ output:
 ```{r setup, message=FALSE}
 install.packages("table1")
 install.packages("GGally")
+install.packages("stargazer")
 
 #we may not need all of these
 library(tidyverse)
@@ -23,6 +24,7 @@ library(lmtest)
 library(dplyr)
 library(table1)
 library(GGally)
+library(stargazer)
 theme_set(theme_minimal())
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -109,11 +111,15 @@ To demonstrate the operationalization of the data, Tables 1 and 2 below display 
 
 df2 <- df
 
-df2$log_pop <- log10(df2$total_pop)
-df2$log_cases <-log10(df2$cases)
-df2$log_deaths <-log10(df2$deaths)
-df2$log_long_trip <-log10(df2$long_trip)
-df2$log_density <- log10(df2$density)
+df2$log_pop <- log10(df2$total_pop+1)
+df2$log_cases <-log10(df2$cases+1)
+df2$log_deaths <-log10(df2$deaths+1)
+df2$log_long_trip <-log10(df2$long_trip+1)
+df2$log_density <- log10(df2$density+1)
+
+#summary(df2)
+df2 <- df2 %>% filter(!is.na(df2))
+#df2 <- df2 %>% filter(!is.infinite(df2))
 
 step_num = c(1,2)
 
@@ -149,12 +155,15 @@ Upon final review of the dataset, there are no additional changes required to pr
 
 ## Linear Regression Results
 
-```{r model creation}
+```{r model creation, warning=FALSE}
 
 #need to change these to per capita data
 model1 <- lm(log(long_trip+1) ~ log(cases+1) + log(deaths+1) + is_rural + median_income, data = df) #limited model
-model2 <- lm(log(long_trip+1) ~ log(cases+1) + log(deaths+1) + is_rural + median_income + unempoy_rate + log(density), data = df)
-model3 <- lm(log(long_trip+1) ~ log(cases+1) + log(deaths+1) + is_rural + median_income + unempoy_rate + log(density) + pct_lt17, data = df) #final model
+model2 <- lm(log(long_trip+1) ~ log(cases+1) + log(deaths+1) + is_rural + median_income + unempoy_rate + log(density+1), data = df)
+model3 <- lm(log(long_trip+1) ~ log(cases+1) + log(deaths+1) + is_rural + median_income + unempoy_rate + log(density+1) + pct_lt17, data = df) #final model
+
+stargazer(model1, model2, model3, type='text', title="Results", align=TRUE)
+
 
 #Run F test to show statistical significance of additional variables
 anova(model1, model2, test = "F")
@@ -165,17 +174,25 @@ coeftest(model3, vcov = vcovHC(model3, type="HC1"))
 ```
 
 ## Discussion
-###Model Limitations
+### Model Limitations
+
+1. **IID Sampling:** There isn't a direct database check for this unfortunately. Looking into how this data was generated, I belive this is IID generally. The data was gathered from independent YouTube uploaders and was a random sample.
+2. **No Perfect Colinearity:** Running a VIF in R in the cell below, we see the VIF score is relatively low for both predictors. Conceptually, we can see no perfect colinearity as we cannot perfectly describe the views variable in terms of average rating or vice versa. Additionally, from the last scatter plot above, we don't see a perfect linear relationship between the predictor variabls views or average rating.
+3. **Linear Conditional Expectation:** 'For this assumption, we are checking the residuals for linear relationships. We can view this by plotting the residuals, as seen below. We generally see a linear line as we move across predictor values with the residuals with no strong pattern. By transforming the average rating and views (log of), we are able to see this linear relationship across all predictor values. 
+4. **Homoskedastic Errors:** 'We are looking for constant error variance across the entire range of the x's ( homoskedastic errors across the range of the x's). From the residual plot below for the final model ('Final Model' figure), we can see the even or equal spread dispersion across the x values whereas with the other two models, this is not as consistent. The residual plots for the other two show increases with the value of the fitted  variables, suggesting non-constant variances in the residuals errors (or heteroscedasticity). Therefore our final model does meet this condition.  We are able to achieve this fianl plot through transfomrtion of views and average rating (log).
+5. **Normally Distributed Errors:** We are looking for a normal distribution of the residuals. We use the QQ plot to investigate this assumption. For the final model, we see a nice linear line from the QQ plot whereas the other two previou models do not show this. We are able to achieve this fianl plot through transfomrtion of views and average rating (log). In conclusion, we meet this assumption with the final model ("Final Model" plot, model = model_transformviewsrating).
 
 ```{r CLM assumptions check}
 
 #run this to display the CLM graphs needed to verify CLM assumptions met
 par(mfrow = c(2, 2))
-plot(model2)
+plot(model2, col="blue") 
+title("Model 2", line = -0.75, outer = TRUE)
 
 ##FINAL MODEL
 par(mfrow = c(2, 2))
-plot(model3)
+plot(model3, col="red") 
+title("Model 2", line = -0.75, outer = TRUE)
 
 ```
 
