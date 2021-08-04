@@ -150,18 +150,23 @@ Upon final review of the dataset, there are no additional changes required to pr
 
 ## A Model Building Process
 
-## Linear Regression Results
-
-To investigate the causal relationships between distance traveled and variables within the dataset, a linear regression was performed in R Studio for three models. The first model is limited to study only key variables of interest for measurment. The second model expands upon the first model to also include key explanatory variables and covariates that are hypothesized to improve performance of the previous model. The third model is all-inclusive of the variables available to the team at the time of data gathering. Details of each model analyzed and subsequent results can be found below. 
+To investigate the causal relationships between distance traveled and variables within the dataset, a linear regression was performed in R Studio for three models. The first model is limited to study only key variables of interest for measurement. The second model expands upon the first model to also include key explanatory variables and covariates that are hypothesized to improve performance of the previous model. The third model is all-inclusive of the variables available to the team at the time of data gathering. Details of each model analyzed and subsequent results can be found below. 
 
 $$
-  f(\text{Distance Traveled}) = \beta_0 + \beta_1 g(\text{rate})  + \beta_3 h(\text{length})
+  Model 1 = f(\text{log(Distance Traveled)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)})  + \beta_2 h(\text{Rural County}) + \beta_3 h(\text{Median Income})
 $$ 
-
+$$
+  Model 2 = f(\text{log(Distance Traveled)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)})  + \beta_2 h(\text{Rural County}) + \beta_3 h(\text{Median Income}) + \beta_4 h(\text{Unemployment Rate}) + \beta_5 h(\text{log(Population Density})
+$$
+$$
+  Model 3 = f(\text{log(Distance Traveled)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)})  + \beta_2 h(\text{Rural County}) + \beta_3 h(\text{Median Income})
+  + \beta_4 h(\text{Unemployment Rate}) + \beta_5 h(\text{log(Population Density}) + \beta_6 h(\text{log(% Age < 17}) + \beta_7 h(\text{log(% Age < 17})
+$$ 
 <!-- Limited Model: The first model you include should include only the key variables you want to measure. These variables might be transformed, as determined by your EDA, but the model should include the absolute minimum number of covariates (perhaps one, or at most two-three, covariates if they are so crucial that it would be unreasonable to omit them). -->
 <!-- Model Two: One model that includes key explanatory variables and covariates that you believe advance your modeling goals without introducing too much multicollinearity or causing other issues of confounding. This model should strike a balance between accuracy and parsimony and reflect your best understanding of the relationships among key variables. -->
 <!-- Model Three: One model that includes the previous covariates, and many other covariates, erring on the side of inclusion. A key purpose of this model is to evaluate how parameters of interest change (if at all) when additional, potentially colinear variables are included in the model specification. -->
 
+## Linear Regression Results
 ```{r model creation, echo=FALSE, warning=FALSE}
 
 #need to change these to per capita data
