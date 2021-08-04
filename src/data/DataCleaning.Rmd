@@ -5,13 +5,16 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r import libraries, echo=FALSE, message=FALSE, warning=FALSE}
 library(tidyverse)
-# source(local=TRUE, file="../util.R")
 ```
+
+# limited model data cleaning
 
 ```{r read in data, echo=FALSE}
 d_covid <- read.csv(url('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv'))
-d_openings <- read.csv(file = './../../data/raw/COVID-19 US state policy database (CUSP) - Closures & Reopening.csv')
 d_trips <- read.csv(file = './../../data/raw/Trips_by_Distance.csv')
+urb_rur_h2 <- read.csv(file = './../../data/raw/DECENNIALSF12010.H2_data_with_overlays_2021-06-08T173848.csv') 
+density <- read.csv(file='./../../data/raw/TAC_population.csv')
+income <- read.csv('./../../data/raw/TAC_income.csv')
 ```
 
 ```{r filter parameters, echo=FALSE}
@@ -21,9 +24,6 @@ state_id = c("TX","Texas",48)
 # dates under investigation
 start_date = as.Date("2021-06-01")
 end_date = as.Date("2021-06-30")
-
-# start_date = as.Date("2021-06-01")
-# end_date = as.Date("2021-06-30")
 ```
 
 
@@ -66,7 +66,7 @@ d_trips <- d_trips %>%
     grepl(paste(state_id, collapse = "|"), State.Postal.Code)
   )
   
-# cleaning
+# cleaning/county filter
 d_trips <- d_trips %>%
   # clean county name format
   mutate(
@@ -77,10 +77,8 @@ d_trips <- d_trips %>%
   mutate(
     # define long trips
     long_trip = sum(c_across(Number.of.Trips.100.250:Number.of.Trips...500)),
-    long_trip_pc = long_trip/total_pop,
     # define short trips
-    short_trip = sum(c_across(Number.of.Trips.1.3:Number.of.Trips.50.100)),
-    short_trip_pc = short_trip/total_pop
+    # short_trip = sum(c_across(Number.of.Trips.1.3:Number.of.Trips.50.100)),
   ) %>%
   rename(
     state = State.Postal.Code,
@@ -88,10 +86,83 @@ d_trips <- d_trips %>%
     fips = County.FIPS
   ) %>%
   select(
-    county, fips, state, total_pop, long_trip, long_trip_pc, short_trip, short_trip_pc
+    county, fips, state, total_pop, long_trip
   ) %>%
   distinct(fips, .keep_all = TRUE)
 ```
+
+```{r clean urban/rural data}
+rural_ind <- urb_rur_h2[-c(1),] %>%
+  rename(fips = GEO_ID,
+         total_pop = H002001,
+         urbanized = H002003,
+         rural = H002005) %>%
+  select(fips, total_pop, urbanized, rural) %>%
+  mutate(
+    fips = substring(fips, 10),
+    total_pop = as.double(total_pop),
+    urbanized = as.double(urbanized),
+    rural = as.double(rural),
+    is_rural = ifelse((total_pop < 50000 & urbanized == 0), 1, 0)
+  ) %>% 
+  select(fips, is_rural) %>% drop_na()
+```
+
+
+```{r clean income data}
+income_f <- income %>%
+  rename(
+    county = County,
+    median_income = Median.Household.Income,
+    povery_rate = X..of.Population.in.Poverty
+  ) %>%
+  select(
+    county, median_income, povery_rate
+  ) %>%
+  mutate(
+    median_income = as.double(gsub('[$,]', '', median_income))
+  )
+
+```
+
+
+```{r clean density data}
+density_f <- density %>%
+  rename(
+    county = County,
+    density = X.Population.Density.Per.Sq.Mile
+    # total_pop = County.Population,
+  ) %>%
+  select(
+    county, 
+    density 
+    #total_pop
+  ) %>%
+  mutate(
+    #total_pop = as.double(gsub('[,]', '', total_pop)),
+    density = as.double(gsub('[,]', '', density))
+  )
+
+
+```
+
+```{r merge limited model dataframe}
+d <- merge(x = d_trips, y = d_covid, by = c("fips", "county", "state")) 
+d <- merge(x = rural_ind, y = d, by = c("fips"))
+d <- merge(x = income_f, y = d, by = c("county"))
+d <- merge(x = density_f, y = d, by = c("county"))
+d <- d %>% drop_na()
+
+knitr::kable(head(d))
+#rm(d)
+```
+
+# Write to .csv
+```{r export interim model_1 dataframe as csv, echo=FALSE}
+write.csv(d, '../../data/interim/covid_trips_interim.csv')
+```
+
+
 
 ```{r merged model_1 dataframe, echo=FALSE}
 #code to merge county info to d
@@ -103,16 +174,24 @@ d <- unique(d)
 ```
 
 
+# Model 2 data cleaning
+
+
+
+# Model 3 data cleaning
+
+
+
+
 # Clean other variables
 ```{r read in variable data, echo=FALSE}
 density <- read.delim("./../../data/raw/2019_Gaz_counties_national.txt", header=TRUE, sep="\t")
 dp03_econ <- read.csv(file = './../../data/raw/ACSDP5Y2019.DP03_data_with_overlays_2021-07-26T143523.csv')
 dp05_age <- read.csv(file = './../../data/raw/ACSDP1Y2019.DP05_data_with_overlays_2021-07-21T215013.csv')
 s1901_income <- read.csv(file = './../../data/raw/ACSST1Y2019.S1901_data_with_overlays_2021-07-21T222906.csv') 
-urb_rur_h2 <- read.csv(file = './../../data/raw/DECENNIALSF12010.H2_data_with_overlays_2021-06-08T173848.csv') 
 
 unemp_claims <- readxl::read_excel("./../../data/raw/weekly-claims-by-county-twc.xlsx")
-
+ur <- readxl::read_excel("./../../data/raw/TX_Rural_County.xlsx")
 ```
 
 
@@ -128,6 +207,8 @@ econ <- dp03_econ %>%
 # merge into main dataframe
 d <- merge(x = econ, y = d, by = c("fips"))
 ```
+
+
 ```{r clean twc unemployment data, echo=FALSE}
 
 uclaims <- unemp_claims[-c(1,2),] %>%
@@ -212,6 +293,14 @@ income <- s1901_income %>%
 
 # merge into main dataframe
 d <- merge(x = income, y = d, by = c("fips"))
+```
+
+
+```{r rural indicator, echo=FALSE}
+d$rural_ind <- ifelse(d$county %in% ur$`Rural County`, 1, 0)
+
+summary(d$rural_ind)
+
 ```
 
 
