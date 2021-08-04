@@ -42,6 +42,8 @@ How does income, population density, and covid regulations in each county impact
 
 We will analyze datasets pertaining to these variables for Texas counties and create three models to understand if causal relationships exist between distance traveled, population income, population density (rural or urban counties), and government regulations. Our hypothesis is that an there is a causal relationship between """
 
+-->Need to explain distance of travel with 
+
 ## Operationalization
 
 To create our dataframe, we cleaned and filtered data from multiple sources of data and joined based on texas county name or code. 
@@ -70,7 +72,7 @@ Table 1 below displays some information about the mean, median, minimum and maxi
 
 ```{r EDA, echo=FALSE, message=FALSE}
 #Example Table
-df$rural_cat <- ifelse(df$is_rural == 1, "Rural Counties", "Urban Counties")
+df$rural_cat <- ifelse(df$is_rural == 1, "Rural", "Urban")
 table1::label(df$density) <- "County Population Density"
 table1::label(df$cases) <- "County Covid-19 Cases"
 table1::label(df$unemp_rate) <- "County Unemployment Rate"
@@ -80,23 +82,27 @@ table1::label(df$pct_gt65) <- "County Age > 65 years (%)"
 # table1::label(df$is_rural) <- "County Type"
 table1::table1(~density + cases + unemp_rate + median_income + pct_lt17 + pct_gt65 | rural_cat, data = df, caption = "Table 1: Texas County Variable Statistics", topclass="Rtable1-zebra", overall = "Total")
 
-#Short vs long trip: rate of short trips is higher than rate of long trips in relation to # of covid cases
-ggplot(data = df) + aes(x = log(cases), y = log(long_trip)) + geom_point()
-#ggplot(data = df) + aes(x = log(cases), y = log(short_trip)) + geom_point()
-
-Rural_County=as.factor(df$is_rural)
+County <= as.factor(df$rural_cat)
 
 df %>%
   mutate(
     cases = log(cases+1),
     deaths = log(deaths+1),
     long_trip = log(long_trip),
-    density = log(density)
+    density = log(density),
+    median_income=log(median_income+1),
+    unemp_rate = log(unemp_rate+1)
   ) %>%
-  select(long_trip, cases, deaths, median_income, unemp_rate, density, pct_lt17) %>%
-  GGally::ggpairs(.,
-               legend = 1, title = "Figure 1: Variable Statistics",
-               mapping = ggplot2::aes(colour=Rural_County))
+  select(long_trip, cases, deaths, median_income, unemp_rate, density, pct_lt17, pct_gt65) %>%
+  GGally::ggpairs(., 
+               legend = 1,
+               aes(color = County), 
+               title = "Figure 1: Variable Characterstics",
+               upper = list(continuous = wrap("cor", size = 2.5)),
+               lower = list(continuous = wrap("points", alpha = 0.5, size=0.3)),
+               diag = list(continuous = wrap("densityDiag", alpha = 0.5)),
+               columnLabels=c("Distance", "Cases", "Deaths", "Income", "Unemployment", "Pop Density", "Age < 17","Age > 65"))+
+               theme(legend.position = "bottom")
 
 ```
 
@@ -108,7 +114,6 @@ To demonstrate the operationalization of the data, Tables 1 and 2 below display 
 ```{r Accounting Table creation & output}
 df2 <- df
 
-df2$log_pop <- log10(df2$total_pop+1)
 df2$log_cases <-log10(df2$cases+1)
 df2$log_deaths <-log10(df2$deaths+1)
 df2$log_long_trip <-log10(df2$long_trip+1)
@@ -150,7 +155,7 @@ Upon final review of the dataset, there are no additional changes required to pr
 
 ## A Model Building Process
 
-To investigate the causal relationships between distance traveled and variables within the dataset, a linear regression was performed in R Studio for three models. The first model is limited to study only key variables of interest for measurement. The second model expands upon the first model to also include key explanatory variables and covariates that are hypothesized to improve performance of the previous model. The third model is all-inclusive of the variables available to the team at the time of data gathering. Details of each model analyzed and subsequent results can be found below. 
+To investigate the causal relationships between distance traveled and variables within the dataset, a linear regression was performed in R Studio for three models. The first model is limited to study only key variables of interest for measurement. The second model expands upon the first model to also include key explanatory variables and covariates that are hypothesized to improve performance of the previous model. The third model is all-inclusive of the variables available to the team at the time of data gathering. Details of each model analyzed can be found below. 
 
 $$
   Model 1 = f(\text{log(Distance Traveled)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)})  + \beta_2 h(\text{Rural County}) + \beta_3 h(\text{Median Income})
@@ -162,28 +167,31 @@ $$
   Model 3 = f(\text{log(Distance Traveled)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)})  + \beta_2 h(\text{Rural County}) + \beta_3 h(\text{Median Income})
   + \beta_4 h(\text{Unemployment Rate}) + \beta_5 h(\text{log(Population Density}) + \beta_6 h(\text{log(% Age < 17}) + \beta_7 h(\text{log(% Age < 17})
 $$ 
-<!-- Limited Model: The first model you include should include only the key variables you want to measure. These variables might be transformed, as determined by your EDA, but the model should include the absolute minimum number of covariates (perhaps one, or at most two-three, covariates if they are so crucial that it would be unreasonable to omit them). -->
-<!-- Model Two: One model that includes key explanatory variables and covariates that you believe advance your modeling goals without introducing too much multicollinearity or causing other issues of confounding. This model should strike a balance between accuracy and parsimony and reflect your best understanding of the relationships among key variables. -->
-<!-- Model Three: One model that includes the previous covariates, and many other covariates, erring on the side of inclusion. A key purpose of this model is to evaluate how parameters of interest change (if at all) when additional, potentially colinear variables are included in the model specification. -->
 
 ## Linear Regression Results
+
+The results from the linear regression analysis can be seen below for each model: 
 ```{r model creation, echo=FALSE, warning=FALSE}
 
 #need to change these to per capita data
-model1 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + median_income, data = df) #limited model
+model1 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + log(median_income+1), data = df) #limited model
 model2 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + median_income + unemp_rate + log(density), data = df)
 model3 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + median_income + unemp_rate + log(density) + pct_lt17 + pct_gt65, data = df) #final model
-
 stargazer(model1, model2, model3, type='text', title="Results", align=TRUE)
-
+```
+Additionally, to indicate if any of the models provide a better fit to the dataset than a model that contains no independent variables, an F test was performed. The results for each model are shown below:
+```{r F Test}
 #Run F test to show statistical significance of additional variables
-anova(model1, model2, test = "F")
-anova(model2, model3, test = "F")
+anova(model1, model2, model3, test = "F")
+```
+From the F-test,  we can see the the addition of the variables into model 2 and model 3 do contribute signficant information to our model based off of the derived p-values.
 
+Last, the significance of individual regression coefficients was tested using robust standard errors in R studio for model 3. The results are shown below: 
+```{r coeftest}
 #Run coeftest to show statistical significance of all variables in the model with robust standard errors
 coeftest(model3, vcov = vcovHC(model3, type="HC1"))
-
 ```
+From the t-test, we can see that Covid-19 cases and median income are statistically significant. Additionally, the percentage of adults greather than 65, the population density, and the Covid-19 death variables are even more statistically significant.
 
 ## Discussion
 
@@ -226,8 +234,6 @@ title("Model 3", line = -0.75, outer = TRUE)
 
 ### Omitted Variable 
 
-<!-- If the team has taken up an explanatory (i.e. causal) question to evaluate, then identify what you think are the most important omitted variables that bias results you care about. For each variable you name, you should reason about the direction of bias caused by omitting this variable. If you can argue whether the bias is large or small, that is even better. State whether you have any variables available that may proxy (even imperfectly) for the omitted variable. Pay particular attention to whether each omitted variable bias is towards zero or away from zero. You will use this information to judge whether the effects you find are likely to be real, or whether they might be entirely an artifact of omitted variable bias. -->
-
 #### Variable 1
 
 One example of an omitted variable that may cause bias in our model is that of vehicle ownership among the population. It can certainly be expected that individuals that own a vehicle would be able to more easily travel short or long distances more frequently with relative ease. If an individual owned a vehicle, this would influence our model by driving the bias further from zero. From the data available, there would no immediate proxy for this omitted variable.
@@ -238,7 +244,7 @@ Another example of an omitted variable that may also cause bias in our model is 
 
 ## Conclusion & Next Steps
 
-The goal of this analysis was to detrmine if there existed a causal relationship between distance traveled and Covid-19 infection rates for residents of the state of Texas. Based upon the linear regression analysis above, model 2 would indicate there may be a causal relationship between distance traveled (outcome variable) and the variables found within that model. 
+The goal of this analysis was to determine if there existed a causal relationship between distance traveled and Covid-19 infection rates for residents of the state of Texas. Based upon the linear regression analysis above, model 2 would indicate there may be a causal relationship between distance traveled (outcome variable) and the variables found within that model. 
 
 For future analysis, it is recommended that Covid-19 policy adherence data per county be incorporated into the model to increase the accuracy. While the Govenor of Texas issued detailed protocols or mandates for the state of Texas, the degree to which each county (and thus the individual residents) complied would be useful data to have if such data were to exist. Additionally, incorporating vaccination rates could aid in development of a model with even higher accuracy. Generally, vaccinations could increase confidence among individuals interested in traveling, especially if they have been in long periods of quarantine or government mandated lockdowns. Last, it is highly recommended that any model generated in the future continue to use the latest data available given the oscillation in vaccination rates, government policy, and new or known variants of the Covid-19 virus.
 
