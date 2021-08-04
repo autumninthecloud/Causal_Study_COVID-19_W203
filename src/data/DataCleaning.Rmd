@@ -130,14 +130,16 @@ income_f <- income %>%
 density_f <- density %>%
   rename(
     county = County,
-    total_pop = County.Population,
     density = X.Population.Density.Per.Sq.Mile
+    # total_pop = County.Population,
   ) %>%
   select(
-    county, total_pop, density
+    county, 
+    density 
+    #total_pop
   ) %>%
   mutate(
-    total_pop = as.double(gsub('[,]', '', total_pop)),
+    #total_pop = as.double(gsub('[,]', '', total_pop)),
     density = as.double(gsub('[,]', '', density))
   )
 
@@ -151,6 +153,7 @@ d <- merge(x = income_f, y = d, by = c("county"))
 d <- merge(x = density_f, y = d, by = c("county"))
 d <- d %>% drop_na()
 
+knitr::kable(head(d))
 #rm(d)
 ```
 
