@@ -27,7 +27,7 @@ library(GGally)
 library(stargazer)
 theme_set(theme_minimal())
 knitr::opts_chunk$set(echo = TRUE)
-
+knitr::knit(output = "./../reports/final_report.pdf")
 ```
 
 ## Introduction
@@ -59,7 +59,7 @@ For our analysis, we will use datasets and variables from the four following sou
 As indicated, each source will provide information on county population demographics such as income, rural vs. urban classification, and status of pandemic regulations. Together, these sources were filtered for the state of Texas and combined to create a dataframe for analysis.
 
 ```{r dataframe, echo=FALSE}
-df <- read.csv('~/lab-2-lab2_section8_jal/data/interim/covid_trips_interim_model3.csv')
+df <- read.csv('./../data/processed/covid_trips_processed.csv')
 #head(df)
 ```
 
@@ -73,12 +73,12 @@ df$rural_cat <- ifelse(df$is_rural == 1, "Rural Counties", "Urban Counties")
 table1::label(df$total_pop) <- "County Population"
 table1::label(df$density) <- "County Population Density"
 table1::label(df$cases) <- "County Covid-19 Cases"
-table1::label(df$unempoy_rate) <- "County Unemployment Rate"
+table1::label(df$unemp_rate) <- "County Unemployment Rate"
 table1::label(df$median_income) <- "County Median Income ($)"
 table1::label(df$pct_lt17) <- "County Age < 17 years (%)"
 table1::label(df$pct_gt65) <- "County Age > 65 years (%)"
 # table1::label(df$is_rural) <- "County Type"
-table1::table1(~total_pop + density + cases + unempoy_rate + median_income + pct_lt17 + pct_gt65 | rural_cat, data = df, caption = "Table 1: Texas County Variable Statistics", topclass="Rtable1-zebra", overall = "Total")
+table1::table1(~total_pop + density + cases + unemp_rate + median_income + pct_lt17 + pct_gt65 | rural_cat, data = df, caption = "Table 1: Texas County Variable Statistics", topclass="Rtable1-zebra", overall = "Total")
 
 #Short vs long trip: rate of short trips is higher than rate of long trips in relation to # of covid cases
 ggplot(data = df) + aes(x = log(cases), y = log(long_trip)) + geom_point()
@@ -94,7 +94,7 @@ df %>%
     long_trip = log(long_trip),
     density = log(density)
   ) %>%
-  select(long_trip, cases, deaths, median_income, unempoy_rate, density, pct_lt17) %>%
+  select(long_trip, cases, deaths, median_income, unemp_rate, density, pct_lt17) %>%
   GGally::ggpairs(.,
                legend = 1, title = "Figure 1: Variable Statistics",
                mapping = ggplot2::aes(colour=Rural_County))
@@ -167,8 +167,8 @@ $$
 
 #need to change these to per capita data
 model1 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + median_income, data = df) #limited model
-model2 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + median_income + unempoy_rate + log(density), data = df)
-model3 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + median_income + unempoy_rate + log(density) + pct_lt17 + pct_gt65, data = df) #final model
+model2 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + median_income + unemp_rate + log(density), data = df)
+model3 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + median_income + unemp_rate + log(density) + pct_lt17 + pct_gt65, data = df) #final model
 
 stargazer(model1, model2, model3, type='text', title="Results", align=TRUE)
 
