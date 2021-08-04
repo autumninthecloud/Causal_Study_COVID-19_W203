@@ -94,7 +94,7 @@ df %>%
     long_trip = log(long_trip),
     density = log(density)
   ) %>%
-  select(long_trip, cases, deaths, median_income, unemp, density, pct_lt17) %>%
+  select(long_trip, cases, deaths, median_income, unemp_rate, density, pct_lt17) %>%
   GGally::ggpairs(.,
                legend = 1, title = "Figure 1: Variable Statistics",
                mapping = ggplot2::aes(colour=Rural_County))
@@ -167,8 +167,8 @@ $$
 
 #need to change these to per capita data
 model1 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + median_income, data = df) #limited model
-model2 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + median_income + unemp + log(density), data = df)
-model3 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + median_income + unemp + log(density) + pct_lt17 + pct_gt65, data = df) #final model
+model2 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + median_income + unemp_rate + log(density), data = df)
+model3 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + median_income + unemp_rate + log(density) + pct_lt17 + pct_gt65, data = df) #final model
 
 stargazer(model1, model2, model3, type='text', title="Results", align=TRUE)
 
