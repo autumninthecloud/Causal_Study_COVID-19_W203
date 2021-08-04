@@ -183,5 +183,9 @@ Another example of an omitted variable that may also cause bias in our model is 
 
 ## Conclusion & Next Steps
 
+Based upon the linear regression analysis above, it is observed that there may be a causal relationship between XX and YY. The hypothesis posed within the introduction is 'failed to be rejected/ rejected.' ....
+
+For future analysis, it is recommended that Covid-19 policy adherence data per county be incorporated into the model to increase the accuracy. While the Govenor of Texas issued detailed protocols or mandates for the state of Texas, the degree to which each county (and thus the individual residents) complied would be useful data to have if such data were to exist.
+
 ## References
 
