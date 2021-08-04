@@ -11,6 +11,7 @@ output:
 
 ```{r setup, message=FALSE}
 install.packages("table1")
+install.packages("GGally")
 
 #we may not need all of these
 library(tidyverse)
@@ -21,7 +22,7 @@ library(sandwich)
 library(lmtest)
 library(dplyr)
 library(table1)
-library(ggally)
+library(GGally)
 theme_set(theme_minimal())
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -57,30 +58,73 @@ For our analysis, we will use datasets and variables from the four following sou
 As indicated, each source will provide information on county population demographics such as income, rural vs. urban classification, and status of pandemic regulations. Together, these sources were filtered for the state of Texas and combined to create a dataframe for analysis.
 
 ```{r dataframe, echo=FALSE}
-df <- read.csv('/home/jovyan/r_bridge/code/lab-2-lab2_section8_jal/data/interim/covid_trips_interim_model3.csv')
-head(df)
+df <- read.csv('~/lab-2-lab2_section8_jal/data/interim/covid_trips_interim_model3.csv')
+#head(df)
+```
+
+## Exploratory Data Analysis
+
+Figure 1 below depicts the distribution and correlation of each variable in our dataset by county type (where '0' indicates an urban county). From Figure 1, it can be observed that some of the variables are not distributed normally, are skewed,  and thus require transformations. More specifically, these variables are: Total Population, Total Cases, Total Deaths, Population Density. The outcome variable, Long Distance, will also require transformation. Upon further analysis, logarithmic transformations were chosen to normalize the distribution and minimize skewness. 
+
+```{r EDA}
+#Example Table
+df$rural_cat <- ifelse(df$is_rural == 1, "Rural Counties", "Urban Counties")
+table1::label(df$total_pop) <- "County Population"
+table1::label(df$density) <- "County Population Density"
+table1::label(df$cases) <- "County Covid-19 Cases"
+table1::label(df$unempoy_rate) <- "County Unemployment Rate"
+table1::label(df$median_income) <- "County Median Income ($)"
+table1::label(df$pct_lt17) <- "County Age < 17 years (%)"
+table1::label(df$pct_gt65) <- "County Age > 65 years (%)"
+# table1::label(df$is_rural) <- "County Type"
+table1::table1(~total_pop + density + cases + unempoy_rate + median_income + pct_lt17 + pct_gt65 | rural_cat, data = df, caption = "Table 1: Texas County Variable Statistics", topclass="Rtable1-zebra", overall = "Total")
+
+#Short vs long trip: rate of short trips is higher than rate of long trips in relation to # of covid cases
+ggplot(data = df) + aes(x = log(cases), y = log(long_trip)) + geom_point()
+#ggplot(data = df) + aes(x = log(cases), y = log(short_trip)) + geom_point()
+
+Rural_County=as.factor(df$is_rural)
+
+df %>% 
+  mutate(
+    total_pop = log(total_pop),
+    cases = log(cases+1),
+    deaths = log(deaths+1),
+    long_trip = log(long_trip),
+    density = log(density)
+  ) %>%
+  select(long_trip, cases, deaths, median_income, unempoy_rate, density, pct_lt17) %>% 
+  GGally::ggpairs(.,
+               legend = 1, title = "Figure 1: Variable Statistics",
+               mapping = ggplot2::aes(colour=Rural_County))
 
 ```
 
+Upon transformation of the data based on the figures above, we can see that poupulation size...
 
 ### Accounting Tables
 
-To demonstrate the operationalization of the data, Tables 1 and 2 below display the original value counts from the dataset as well as how many values were removed as a part of filtering the dataset to remove all states except Texas. For the analysis, ### responses were analyzed as shown in Table 1. Table 2 depicts the county type breakdown for rural or urban classification as well. 
+To demonstrate the operationalization of the data, Tables 1 and 2 below display the original value counts from the dataset as well as how many values were removed as a part of filtering the dataset to remove all states except Texas. For the analysis, 230 responses were analyzed as shown in Table 1. Table 2 depicts the county type breakdown for rural or urban classification as well. 
 
 ```{r Accounting Table creation & output}
 
-step_num = c(1,2,3)
+df2 <- df
+
+df2$log_pop <- log10(df2$total_pop)
+df2$log_cases <-log10(df2$cases)
+df2$log_deaths <-log10(df2$deaths)
+df2$log_long_trip <-log10(df2$long_trip)
+
+step_num = c(1,2)
 
 number_of_samples = c(nrow(df),
-                      nrow(#newdf1),
-                      nrow(#newdf2))                      
+                      nrow(df2))
 samples_removed = c(0,
-                    nrow(df)-nrow(#newdf1),
-                    nrow(#newdf1)-nrow(#newdf2))
+                    nrow(df)-nrow(df2))
+
                     
 reasoning = c("Original Dataset",
-              "Removing XYZ",
-              "Removing 123")
+              "Logarithmic Transformations")
 
 accounting_df <- data.frame(step_num,
                             number_of_samples,
@@ -100,40 +144,6 @@ knitr::kable(accounting_df, caption="Accounting Table", align = "c")
 #### Additional Changes to the Data:
 
 Upon final review of the dataset, there are no additional changes required to prepare the dataset for data exploration and subsequent model creation. Outliers or incorrect data are not observed upon final inspection. The Accounting Tables capture the changes made through cleaning and filtering as indicated previously.
-
-## Exploratory Data Analysis
-
-
-```{r EDA}
-#Example Table
-table1::label(df$total_pop) <- "TX County Population"
-table1::label(df$sum_cases) <- "TX County Covid-19 Cases"
-
-table1::table1(~total_pop + sum_cases | state, data = df)
-
-
-#Short vs long trip: rate of short trips is higher than rate of long trips in relation to # of covid cases
-ggplot(data = df) + aes(x = log(sum_cases), y = log(long_trip)) + geom_point()
-
-ggplot(data = df) + aes(x = log(sum_cases), y = log(short_trip)) + geom_point()
-
-df %>% 
-  mutate(
-    total_pop = log(total_pop),
-    cases = log(cases+1),
-    deaths = log(deaths+1),
-    long_trip = log(long_trip),
-    density = log(density)
-  ) %>%
-  select(long_trip, cases, deaths, median_income, unempoy_rate, density, pct_lt17) %>% 
-  GGally::ggpairs(.,
-               legend = 1,
-               mapping = ggplot2::aes(colour=as.factor(df$is_rural)))
-  
-
-```
-
-Upon transformation of the data based on the figures above, we can see that poupulation size...
 
 ## A Model Building Process
 
