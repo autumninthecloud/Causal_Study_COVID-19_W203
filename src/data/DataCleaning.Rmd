@@ -234,6 +234,11 @@ age_f <- age %>%
 
 ```{r merge limited model dataframe}
 d <- merge(x = age_f, y = d, by = c("county"))
+d <- d %>% rowwise() %>%
+  mutate(
+    lt17 = as.integer(0.01 * pct_lt17 * total_pop),
+    gt65 = as.integer(0.01 * pct_gt65 * total_pop)
+  )
 d <- d %>% drop_na()
 
 knitr::kable(head(d))
@@ -258,8 +263,8 @@ d <- d %>%
     is_rural,
     unemployed,
     density,
-    pct_lt17,
-    pct_gt65,
+    lt17,
+    gt65,
     in_poverty
   )
 knitr::kable(head(d))
