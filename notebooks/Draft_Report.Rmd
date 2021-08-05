@@ -37,12 +37,13 @@ knitr::opts_chunk$set(echo = TRUE)
 Summer vacations in the United States are synonymous with sunny, leisurely days spent with loved ones. As Ella Fitzgerald so aptly sings, “Summertime, and the living is easy.” However, travel in the recent peak-vacation months has certainly deviated from this idealistic frame of mind with the onset of the COVID-19 pandemic in early 2020. The global travel industry has experienced sharp declines. Specifically in the United States, “travel spending totaled a mere $679 billion in 2020, an unprecedented 42% annual decline (nearly $500 billion) from 2019,” according to analysis from the U.S. Travel Association. 
 As infection and vaccination rates oscillate regionally along with government policies for business operation restrictions in the United States, our team of data scientists will look to answer the following research question in more detail using linear regression techniques: 
 
-Do COVID infection rates impact vacation travel distance for U.S. residents in the state of Texas? 
+Do COVID-19 infection rates impact vacation travel distance for U.S. residents in the state of Texas? 
 How does income, population density, and covid regulations in each county impact traveling? 
 
 We will analyze datasets pertaining to these variables for Texas counties and create three models to understand if causal relationships exist between distance traveled, population income, population density (rural or urban counties), and government regulations. Our hypothesis is that an there is a causal relationship between """
 
--->Need to explain distance of travel with 
+-->Need to explain distance of travel with bs TRANSPORT data
+-->Need to add more to causal theory to justify variable selection
 
 ## Operationalization
 
@@ -81,28 +82,48 @@ table1::label(df$pct_lt17) <- "County Age < 17 years (%)"
 table1::label(df$pct_gt65) <- "County Age > 65 years (%)"
 # table1::label(df$is_rural) <- "County Type"
 table1::table1(~density + cases + unemp_rate + median_income + pct_lt17 + pct_gt65 | rural_cat, data = df, caption = "Table 1: Texas County Variable Statistics", topclass="Rtable1-zebra", overall = "Total")
+```
+Below are histograms of variables that did not follow normal distribution and required transformation. Each of these variables was logarithmically transformed.
+```{r scatterplots, message=FALSE}
+attach(df)
+par(mfrow=c(3,2))
+hist(cases, main="Histogram of Covid-19 Cases")
+hist(deaths, main="Histogram of Covid-19 Deaths")
+hist(long_trip, main="Histogram of Distance")
+hist(density, main="Histogram of Population Density")
+hist(unemp_rate, main="Histogram of Unemployment Rate")
+hist(median_income, main="Histogram of Median Income")
 
-County <= as.factor(df$rural_cat)
+```
 
-df %>%
-  mutate(
-    cases = log(cases+1),
-    deaths = log(deaths+1),
-    long_trip = log(long_trip),
-    density = log(density),
-    median_income=log(median_income+1),
-    unemp_rate = log(unemp_rate+1)
-  ) %>%
-  select(long_trip, cases, deaths, median_income, unemp_rate, density, pct_lt17, pct_gt65) %>%
-  GGally::ggpairs(., 
-               legend = 1,
-               aes(color = County), 
-               title = "Figure 1: Variable Characterstics",
-               upper = list(continuous = wrap("cor", size = 2.5)),
-               lower = list(continuous = wrap("points", alpha = 0.5, size=0.3)),
-               diag = list(continuous = wrap("densityDiag", alpha = 0.5)),
-               columnLabels=c("Distance", "Cases", "Deaths", "Income", "Unemployment", "Pop Density", "Age < 17","Age > 65"))+
-               theme(legend.position = "bottom")
+
+```{r ggally, echo=FALSE, message=FALSE}
+County = as.factor(df$rural_cat)
+
+# df %>%
+#   mutate(
+#     cases = log(cases+1),
+#     deaths = log(deaths+1),
+#     long_trip = log(long_trip),
+#     density = log(density),
+#     median_income=log(median_income+1),
+#     unemp_rate = log(unemp_rate+1)
+#   ) %>%
+#   select(long_trip, cases, deaths, median_income, unemp_rate, density, pct_lt17, pct_gt65) %>%
+#   GGally::ggpairs(.,
+#                legend = 1,
+#                aes(color = County),
+#                title = "Figure 1: Variable Characterstics",
+#                upper = list(continuous = wrap("cor", size = 2.5)),
+#                lower = list(continuous = wrap("points", alpha = 0.5, size=0.3)),
+#                diag = list(continuous = wrap("densityDiag", alpha = 0.5)),
+#                columnLabels=c("Distance", "Cases", "Deaths", "Income", "Unemployment", "Pop Density", "Age < 17","Age > 65"))+
+#                theme(legend.position = "bottom")
+
+ggpairs(df, columns = 3:ncol(df), legend = 1, aes(color = County), title = "Figure 1: Variable Characterstics")
+#                upper = list(continuous = wrap("cor", size = 2.5)),
+#                lower = list(continuous = wrap("points", alpha = 0.5, size=0.3)),
+#                diag = list(continuous = wrap("densityDiag", alpha = 0.5)))
 
 ```
 
@@ -160,13 +181,17 @@ To investigate the causal relationships between distance traveled and variables 
 $$
   Model 1 = f(\text{log(Distance Traveled)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)})  + \beta_2 h(\text{Rural County}) + \beta_3 h(\text{Median Income})
 $$ 
+
+
 $$
   Model 2 = f(\text{log(Distance Traveled)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)})  + \beta_2 h(\text{Rural County}) + \beta_3 h(\text{Median Income}) + \beta_4 h(\text{Unemployment Rate}) + \beta_5 h(\text{log(Population Density})
 $$
+
 $$
   Model 3 = f(\text{log(Distance Traveled)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)})  + \beta_2 h(\text{Rural County}) + \beta_3 h(\text{Median Income})
   + \beta_4 h(\text{Unemployment Rate}) + \beta_5 h(\text{log(Population Density}) + \beta_6 h(\text{log(% Age < 17}) + \beta_7 h(\text{log(% Age < 17})
 $$ 
+
 
 ## Linear Regression Results
 
@@ -189,7 +214,7 @@ From the F-test,  we can see the the addition of the variables into model 2 and 
 Last, the significance of individual regression coefficients was tested using robust standard errors in R studio for model 3. The results are shown below: 
 ```{r coeftest}
 #Run coeftest to show statistical significance of all variables in the model with robust standard errors
-coeftest(model3, vcov = vcovHC(model3, type="HC1"))
+coeftest(model2, vcov = vcovHC(model3, type="HC1"))
 ```
 From the t-test, we can see that Covid-19 cases and median income are statistically significant. Additionally, the percentage of adults greather than 65, the population density, and the Covid-19 death variables are even more statistically significant.
 
@@ -225,10 +250,10 @@ par(mfrow = c(2, 2))
 plot(model2, col="blue") 
 title("Model 2", line = -0.75, outer = TRUE)
 
-##FINAL MODEL
-par(mfrow = c(2, 2))
-plot(model3, col="green") 
-title("Model 3", line = -0.75, outer = TRUE)
+# Model 3
+# par(mfrow = c(2, 2))
+# plot(model3, col="green") 
+# title("Model 3", line = -0.75, outer = TRUE)
 
 ```
 
