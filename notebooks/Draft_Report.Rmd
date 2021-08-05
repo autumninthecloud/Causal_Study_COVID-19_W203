@@ -179,20 +179,19 @@ Upon final review of the dataset, there are no additional changes required to pr
 
 ## A Model Building Process
 
-To investigate the causal relationships between distance traveled and variables within the dataset, a linear regression was performed in R Studio for three models. The third model is all-inclusive of the variables available to the team at the time of data gathering. Details of each model analyzed can be found below. 
+To investigate the causal relationships between distance traveled and variables within the dataset, a linear regression was performed in R Studio for three models. The first model includes only our base variables. In the second model, we added additional county characteristics. In the final model, we added in another covid related factor.
 
-Here is the first model, which is limited to study only key variables of interest for measurement based on our hypotheses. Our key input variable is covid cases and key output is number of trips greater than 100 miles. We also chose to add an indicator for rural counties because it could be directly related to trip distance, as well as median income which plays a role in a person's ability to take vacations in the first place. 
+Here is the first model, which is limited to study only key variables of interest for measurement based on our hypotheses. Our key input variable is covid cases and key output is number of trips greater than 100 miles. We also chose to add an indicator for rural counties because it could be directly related to trip distance
 $$
-  Model 1 = f(\text{log(Number of Long Trips)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)})  + \beta_2 h(\text{Rural County}) + \beta_3 h(\text{Median Income})
+  Model 1 = f(\text{log(#Long Trips)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)}) + \beta_2 g(\text{log(Covid-19 Deaths)})  + \beta_3 h(\text{Rural County})
 $$ 
-The second model expands upon the first model to also include key explanatory variables and covariates that are hypothesized to improve performance of the previous model. Here, we added in unemployment rate to assess if the impact of covid to that county affected travel.
+The second model expands upon the first model to also include key explanatory variables and covariates that are hypothesized to improve performance of the previous model. Here, we added in median income and density of the county as additional descriptors of the county. 
 $$
-  Model 2 = f(\text{log(Number of Long Trips)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)})  + \beta_2 h(\text{Rural County}) + \beta_3 h(\text{Median Income}) + \beta_4 h(\text{Unemployment Rate}) + \beta_5 h(\text{log(Population Density})
+  Model 2 = f(\text{log(#Long Trips)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)}) + \beta_2 g(\text{log(Covid-19 Deaths)})  + \beta_3 h(\text{Rural County}) + \beta_4 h(\text{Median Income}) + \beta_5 h(\text{County Density})
 $$
 Finally in the third model, we added in age demographics as percent under 17/over 65 as another potential source that influences travel midst covid cases due to the nature of how covid affects those at different ages.
 $$
-  Model 3 = f(\text{log(Number of Long Trips)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)})  + \beta_2 h(\text{Rural County}) + \beta_3 h(\text{Median Income})
-  + \beta_4 h(\text{Unemployment Rate}) + \beta_5 h(\text{log(Population Density}) + \beta_6 h(\text{log(% Age < 17}) + \beta_7 h(\text{log(% Age < 17})
+  Model 3 = f(\text{log(#Long Trips)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)}) + \beta_2 g(\text{log(Covid-19 Deaths)})  + \beta_3 h(\text{Rural County}) + \beta_4 h(\text{Median Income}) + \beta_5 h(\text{County Density}) + \beta_6 h(\text{Population under 17}) + \beta_7 h(\text{Population over 65})
 $$ 
 
 
@@ -207,7 +206,20 @@ model2 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + log(medi
 model3 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + log(median_income+1) + log(density) + log(lt17) + log(gt65), data = df) #final model
 stargazer(model1, model2, model3, type='text', title="Results", align=TRUE)
 ```
-From this output table, we can see most of our hypotheses about the variables we included in our model were correct and do have a statistically significant contribution to our model already. 
+From this output table, we can discern quite a bit of information. 
+
+First, we consider the models holistically. Here are some of our observations:
+* In model1, all of our variables are extremely significant, as expected from my hypotheses, though in the opposite direction. We would expect an inverse relationship between covid and travel, though it seems that this is estimating a positive relationship
+* In model2, when county density is factored in, the presence of covid seems to have less positive of an effect on travel and that higher density counties see more travel. 
+* In model3, with additionally age factored in, we see that actually the most statistically significant effect on long trips are median income of the household and presence of kids under 17. 
+* In terms of R^2 and RSE, we are improving with each model. 
+* The addition of our chosen parameters for each following model is also statistically better than the previous, as indicated by the F statistic. 
+
+We will also interpret the coefficient values and what these mean in the context of our model. Almost all of our variables needed a log transform, including the output, making this a log-log regression. These regressions are most intuitive to understand in terms of percent increases. 
+* First to note is our persistently significant constant in each model. Regardless of any variables, we are getting between ~300 (as with model3) and over 8000 (as with model2) trips over 100 miles. This is calculated as e^(Constant). 
+* In model1, for every percent increase in both cases and deaths, we are getting almost half a percent increase in trips. The positive relationship doesnt make much sense, so we will look to the other models.
+* In model2, we see that density has a more positive relationship with trips than do covid cases and deaths. 
+* In model3, covid cases and deaths become insiginifcant, though its lookign 
 
 Additionally, to indicate if any of the models provide a better fit to the dataset than a model that contains no independent variables, an F test was performed. The results for each model are shown below:
 ```{r F Test}
