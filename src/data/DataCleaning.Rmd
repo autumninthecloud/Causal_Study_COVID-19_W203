@@ -246,6 +246,7 @@ d <- d %>%
     cases,
     deaths,
     median_income,
+    total_pop,
     is_rural,
     unemp_rate,
     density,
