@@ -46,9 +46,9 @@ Summer vacations in the United States are synonymous with sunny, leisurely days 
 As infection and vaccination rates oscillate regionally along with government policies for business operation restrictions in the United States, our team of data scientists will look to answer the following research question in more detail using linear regression techniques: 
 
 Do COVID-19 infection rates impact vacation travel distance for U.S. residents in the state of Texas? 
-How does income, population density, and covid regulations in each county impact traveling? 
+Does income, population density, unemployment rates, and age in Texas counties impact traveling? 
 
-We will analyze data pertaining to these variables for Texas counties and create three models to understand if causal relationships exist between the number of long distance trips, population income, population density (rural or urban counties). Our hypothesis is that an there is a causal relationship between """ [summer travel]
+We will analyze datasets from June, 2021 pertaining to these variables for Texas counties and create three models to understand if causal relationships exist between the number of long distance trips, population income, population density (rural or urban counties). Our hypothesis is that an there is a causal relationship between """
 
 -->Need to explain distance of travel with bs TRANSPORT data[^bts01] [survey](https://www.bts.gov/statistical-products/surveys/national-household-travel-survey-long-distance-travel-quick-facts)
 -->Need to add more to causal theory to justify variable selection
@@ -68,7 +68,6 @@ The Texas Association of Counties proved to be a rich source of demographic and 
 The decennial survey conducted by the Census results in an incredibly rich national database of economic, geographic, demographic, and social measures. While the vast database has many of the measurements useful to support our causal theory, as the TAC database queries held a majority of these, the decennial survey did proffer a means to generate an indicator variable identifying rural or urban counties. This variable was important since we hypothesized that rural counties may experience higher long trip counts due to their geographies. 
 
 Our final course were data produced by the US Department of Transportation's Bureau of Transportation Statistics (USBTS). These data are experimental *estimates* of mobility gathrered from aggregated mobile device data. USBTS states that these data are experimental, and but significant effort was made to ensure proper population weighting, and data multi-sourcing (to reduce variance in spacial and temporal measurements common from a single source) were implemented before any of the statistics were calculated. Trips are defined as a longer than 10 minute stop at a location that is not home. Trips are not distiguish by mode of transporation (i.e., air, train, bus, car, or bike). For our analyis, we were interested in only trips longer than 100 miles in Texas in June of 2021 as this best operationalized the concept of a vacation[^bts01].
-
 
 
 [^bts01]: https://www.bts.gov/statistical-products/surveys/national-household-travel-survey-long-distance-travel-quick-facts
@@ -105,8 +104,8 @@ table1::label(df$density) <- "County Population Density"
 table1::label(df$cases) <- "County Covid-19 Cases"
 table1::label(df$unemployed) <- "County Unemployment Rate"
 table1::label(df$median_income) <- "County Median Income ($)"
-table1::label(df$lt17) <- "County Age < 17 years (%)"
-table1::label(df$gt65) <- "County Age > 65 years (%)"
+table1::label(df$lt17) <- "County Age < 17 years"
+table1::label(df$gt65) <- "County Age > 65 years"
 # table1::label(df$is_rural) <- "County Type"
 table1::table1(~density + cases + unemployed + median_income + lt17 + gt65 | rural_cat, data = df, caption = "Table 1: Texas County Variable Statistics", topclass="Rtable1-zebra", overall = "Total")
 ```
@@ -118,7 +117,7 @@ hist(cases, main="Histogram of Covid-19 Cases")
 hist(deaths, main="Histogram of Covid-19 Deaths")
 hist(long_trip, main="Histogram of Distance")
 hist(density, main="Histogram of Population Density")
-hist(unemployed, main="Histogram of Unemployment Rate")
+hist(unemployed, main="Histogram of Unemployment")
 hist(median_income, main="Histogram of Median Income")
 
 ```
@@ -134,7 +133,9 @@ df %>%
     long_trip = log(long_trip),
     density = log(density),
     median_income=log(median_income+1),
-    unemployed = log(unemployed+1)
+    unemployed = log(unemployed+1),
+    lt17 = log(lt17),
+    gt65 = log(gt65)
   ) %>%
   select(long_trip, cases, deaths, median_income, unemployed, density, lt17, gt65) %>%
   GGally::ggpairs(.,
@@ -153,7 +154,6 @@ df %>%
 # #                diag = list(continuous = wrap("densityDiag", alpha = 0.5)))
 
 ```
-
 
 ## Accounting Tables
 
@@ -196,49 +196,59 @@ colnames(final_tab_df) <- c('County Type', 'Number of Samples')
 knitr::kable(final_tab_df, caption="Table 2: Final Samples by County Type", align = "c")
 ```
 
-
 ## Additional Changes to the Data:
 
 Upon final review of the dataset, there are no additional changes required to prepare the dataset for data exploration and subsequent model creation. Outliers or incorrect data are not observed upon final inspection. The Accounting Table capture the changes made through cleaning and filtering as indicated previously. Table 2 above also displays the subset per county type for the overall dataset.
 
 # A Model Building Process
 
-To investigate the causal relationships between distance traveled and variables within the dataset, a linear regression was performed in R Studio for three models. The first model is limited to study only key variables of interest for measurement. The second model expands upon the first model to also include key explanatory variables and covariates that are hypothesized to improve performance of the previous model. The third model is all-inclusive of the variables available to the team at the time of data gathering. Details of each model analyzed can be found below.
+To investigate the causal relationships between distance traveled and variables within the dataset, a linear regression was performed in R Studio for three models. The first model includes only our base variables. In the second model, we added additional county characteristics. In the final model, we added in another covid related factor.
 
-$Model_1: f(\text{log(Number of Long Trips)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)})  + \beta_2 h(\text{Rural County}) + \beta_3 h(\text{Median Income})$
-
-
-$Model_2: f(\text{log(Number of Long Trips)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)})  + \beta_2 h(\text{Rural County}) + \beta_3 h(\text{Median Income}) + \beta_4 h(\text{Unemployment Rate}) + \beta_5 h(\text{log(Population Density})$
-
-$Model_3: f(\text{log(Number of Long Trips)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)})  + \beta_2 h(\text{Rural County}) + \beta_3 h(\text{Median Income}) + \beta_4 h(\text{Unemploymed}) + \beta_5 h(\text{log(Population Density}) + \beta_6 h(\text{log(Age < 17}) + \beta_7 h(\text{log(Age > 65}) + \beta_7 h(\text{log(In Poverty})$
-
+Here is the first model, which is limited to study only key variables of interest for measurement based on our hypotheses. Our key input variable is covid cases and key output is number of trips greater than 100 miles. We also chose to add an indicator for rural counties because it could be directly related to trip distance
+$Model_1: f(\text{log(#Long Trips)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)}) + \beta_2 g(\text{log(Covid-19 Deaths)})  + \beta_3 h(\text{Rural County})$
+The second model expands upon the first model to also include key explanatory variables and covariates that are hypothesized to improve performance of the previous model. Here, we added in median income and density of the county as additional descriptors of the county. 
+$Model_2: f(\text{log(#Long Trips)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)}) + \beta_2 g(\text{log(Covid-19 Deaths)})  + \beta_3 h(\text{Rural County}) + \beta_4 h(\text{Median Income}) + \beta_5 h(\text{County Density})$
+Finally in the third model, we added in age demographics as percent under 17/over 65 as another potential source that influences travel midst covid cases due to the nature of how covid affects those at different ages.
+$Model_3: f(\text{log(#Long Trips)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)}) + \beta_2 g(\text{log(Covid-19 Deaths)})  + \beta_3 h(\text{Rural County}) + \beta_4 h(\text{Median Income}) + \beta_5 h(\text{County Density}) + \beta_6 h(\text{Population under 17}) + \beta_7 h(\text{Population over 65})$ 
 
 # Linear Regression Results
 
 The results from the linear regression analysis can be seen below for each model:
 ```{r model creation, echo=FALSE, warning=FALSE}
+model1 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural, data = df) #limited model
+model2 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + log(median_income+1) + log(density), data = df)
+model3 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + log(median_income+1) + log(density) + log(lt17) + log(gt65), data = df) #final model
 
-#need to change these to per capita data
-model1 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + log(median_income+1), data = df) #limited model
-model2 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + median_income + unemployed + log(density), data = df)
-model3 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + median_income + unemployed + log(density) + lt17 + gt65, data = df) #final model
 stargazer(model1, model2, model3, type='text', title="Results", align=TRUE)
 ```
+From this output table, we can discern quite a bit of information. 
+
+First, we consider the models holistically. Here are some of our observations:
+* In model1, all of our variables are extremely significant, as expected from my hypotheses, though in the opposite direction. We would expect an inverse relationship between covid and travel, though it seems that this is estimating a positive relationship
+* In model2, when county density is factored in, the presence of covid seems to have less positive of an effect on travel and that higher density counties see more travel. 
+* In model3, with additionally age factored in, we see that actually the most statistically significant effect on long trips are median income of the household and presence of kids under 17. 
+* In terms of R^2 and RSE, we are improving with each model. 
+* The addition of our chosen parameters for each following model is also statistically better than the previous, as indicated by the F statistic. 
+
+We will also interpret the coefficient values and what these mean in the context of our model. Almost all of our variables needed a log transform, including the output, making this a log-log regression. These regressions are most intuitive to understand in terms of percent increases. 
+* First to note is our persistently significant constant in each model. Regardless of any variables, we are getting between ~300 (as with model3) and over 8000 (as with model2) trips over 100 miles. This is calculated as e^(Constant). 
+* In model1, for every percent increase in both cases and deaths, we are getting almost half a percent increase in trips. The positive relationship doesnt make much sense, so we will look to the other models.
+* In model2, we see that density has a more positive relationship with trips than do covid cases and deaths. 
+* In model3, covid cases and deaths become insiginifcant, though its lookign 
+
 Additionally, to indicate if any of the models provide a better fit to the dataset than a model that contains no independent variables, an F test was performed. The results for each model are shown below:
 ```{r F Test, echo=FALSE}
 #Run F test to show statistical significance of additional variables
 anova(model1, model2, model3, test = "F")
 ```
-From the F-test,  we can see the the addition of the variables into model 2 and model 3 do contribute signficant information to our model based off of the derived p-values.
+From the F-test,  we can see the the addition of the variables into model 2 and model 3 do contribute significant information to our model based off of the derived p-values.
 
 Last, the significance of individual regression coefficients was tested using robust standard errors in R studio for model 3. The results are shown below:
 ```{r coeftest, echo=FALSE}
 #Run coeftest to show statistical significance of all variables in the model with robust standard errors
-coeftest(model2, vcov = vcovHC(model3, type="HC1"))
+coeftest(model3, vcov = vcovHC(model3, type="HC1"))
 ```
-From the t-test, we can see that Covid-19 cases and median income are statistically significant. Additionally, the percentage of adults greather than 65, the population density, and the Covid-19 death variables are even more statistically significant.
-
-## Discussion
+From the t-test, we can see that Covid-19 cases and median income are statistically significant. Additionally, the percentage of adults greater than 65, the population density, and the Covid-19 death variables are even more statistically significant.
 
 # Model Limitations
 
