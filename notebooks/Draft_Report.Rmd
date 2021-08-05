@@ -246,6 +246,39 @@ First, we consider the models holistically. Here are some of our observations:
 * The addition of our chosen parameters for each following model is also statistically better than the previous, as indicated by the F statistic.
 
 $$RECHECK THIS SECTION FOR VALUES$$
+```{r calc. coeff percents}
+#Model 1
+#when you compare a coeff for non-log x to a log y:
+(1-exp(coef(model1)["is_rural"]))*100
+#For every percent increase in x 'is rural', you get a #% outcome in number of long trips.
+
+#Model 2
+(1-exp(coef(model2)["is_rural"]))*100
+#Model 3
+(1-exp(coef(model3)["is_rural"]))*100
+
+
+#Same for income
+
+#Model 2
+(1-exp(coef(model2)["log(median_income + 1)"]))*100
+#Model 3
+(1-exp(coef(model3)["log(median_income + 1)"]))*100
+
+#Same for density
+
+#Model 2
+(1-exp(coef(model2)["log(density)"]))*100
+#Model 3
+(1-exp(coef(model3)["log(density)"]))*100
+
+#Same for age 17 & 65
+#Model 3
+(1-exp(coef(model3)["log(lt17)"]))*100
+(1-exp(coef(model3)["log(gt65)"]))*100
+```
+
+
 We will also interpret the coefficient values and what these mean in the context of our model. Almost all of our variables needed a log transform, including the output, making this a log-log regression. These regressions are most intuitive to understand in terms of percent increases.
 * First to note is our persistently significant constant in each model. Regardless of any variables, we are getting between ~300 (as with model3) and over 8000 (as with model2) trips over 100 miles. This is calculated as e^(Constant).
 * In $Model_1$, for every percent increase in cases, we are getting almost half a percent increase in trips. The positive relationship doesnt make much sense, so we will look to the other models.
