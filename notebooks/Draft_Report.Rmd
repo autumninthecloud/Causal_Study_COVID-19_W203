@@ -92,9 +92,9 @@ df <- read.csv('./../data/processed/covid_trips_processed.csv')
 
 ## Exploratory Data Analysis
 
-Table 1 below displays some information about the mean, median, minimum and maximum values for each variable. Figure 1 below depicts the distribution and correlation of each variable in our dataset by county type (where '0' indicates an urban county). From Figure 1, it can be observed that some of the variables are not distributed normally, are skewed,  and thus require transformations. More specifically, these variables are: Total Population, Total Cases, Population Density. The outcome variable, long trips, will also require transformation. Upon further analysis, logarithmic transformations were chosen to normalize the distribution and minimize skewness.
+Table \@ref(tab:var-summary) below displays some information about the mean, median, minimum and maximum values for each variable. Figure \@ref(fig:ggally) below depicts the distribution and correlation of each variable in our dataset by county type (where '0' indicates an urban county). From Figure \@ref(fig:ggally), it can be observed that some of the variables are not distributed normally, are skewed,  and thus require transformations. More specifically, these variables are: Total Population, Total Cases, Population Density. The outcome variable, `long_trips`, will also require the same transformation. Upon further analysis, logarithmic transformations were chosen to normalize the distribution and minimize skewness.
 
-```{r EDA, echo=FALSE, message=FALSE}
+```{r var-summary, echo=FALSE, message=FALSE, fig.cap='Texas County Variable Characteristics', fig.pos='!b'}
 #Example Table
 df$rural_cat <- ifelse(df$is_rural == 1, "Rural", "Urban")
 table1::label(df$density) <- "Population Density"
@@ -106,15 +106,15 @@ table1::label(df$median_income) <- "Median Income ($)"
 table1::label(df$lt17) <- "Age < 17 Years"
 table1::label(df$gt65) <- "Age > 65 Years"
 # table1::label(df$is_rural) <- "Type"
-table1::table1(~density + cases + median_income + lt17 + gt65 | rural_cat, data = df, caption = "Table 1: Texas County Variable Characteristics", topclass="Rtable1-zebra", overall = "Total")
+table1::table1(~density + cases + median_income + lt17 + gt65 | rural_cat, data = df, topclass="Rtable1-zebra", overall = "Total")
 # table1::table1(~density + cases + deaths + median_income + unemployed + in_poverty + lt17 + gt65 | rural_cat, data = df, caption = "Table 1: Texas County Variable Characteristics", topclass="Rtable1-zebra", overall = "Total")
 ```
 
 
-Below are histograms of variables that did not follow normal distribution and required transformation. Each of these variables were logarithmically transformed, which can be seen in the collective figure (GGally).
+Below are histograms of variables that did not follow normal distribution and required transformation. We applied a logarithmic transform to each of these variables, which can be seen in the collective Figure \@ref(tab:var-plots). *why logs*
 
 
-```{r var plots, fig.align='center', message=FALSE, echo=FALSE}
+```{r var-plots, fig.align='center', message=FALSE, echo=FALSE}
 attach(df)
 par(mfrow=c(2,2))
 hist(cases, main="Figure 1: Histogram of COVID-19 Cases")
@@ -130,11 +130,12 @@ hist(median_income, main="Figure 4: Histogram of Median Income ($)")
 Upon logarithmic transformation, below is a condensed view of the statistics of each variable:
 
 
-```{r ggally, echo=FALSE, message=FALSE}
+```{r ggally, echo=FALSE, message=FALSE, fig.cap='Variable Characterstics', fig.pos='!b'}
 County = as.factor(df$rural_cat)
 
 df %>%
   mutate(
+    # log(x+1) to preserve negative and zero valued samples
     cases = log(cases+1),
     # deaths = log(deaths+1),
     long_trip = log(long_trip),
@@ -148,7 +149,7 @@ df %>%
   GGally::ggpairs(.,
                legend = 1,
                aes(color = County),
-               title = "Figure 5: Variable Characterstics",
+               # title = "Figure 5: Variable Characterstics",
                upper = list(continuous = wrap("cor", size = 2.5)),
                lower = list(continuous = wrap("points", alpha = 0.5, size=0.3)),
                diag = list(continuous = wrap("densityDiag", alpha = 0.5)),
@@ -164,9 +165,9 @@ df %>%
 
 ## Accounting Tables
 
-To demonstrate the operationalization of the data, Tables 1 and 2 below display the original value counts from the dataset as well as how many values were removed as a part of filtering the dataset to remove all states except Texas. For the analysis, 230 responses were analyzed as shown in Table 1. Table 2 depicts the county type breakdown for rural or urban classification as well.
+To demonstrate the operationalization of the data, Tables \@ref(tab:accounting-table) and \@ref(tab:number-of-samples) below display the original value counts from the dataset as well as how many values were removed as a part of filtering the dataset to remove all states except Texas. For the analysis, 230 responses were analyzed as shown in Table 1. Table 2 depicts the county type breakdown for rural or urban classification as well.
 
-```{r Accounting Table creation & output, echo=FALSE}
+```{r accounting-table, echo=FALSE, fig.cap='Variable Characterstics', fig.pos='!b'}
 df2 <- df
 
 df2$log_cases <-log10(df2$cases+1)
@@ -196,12 +197,16 @@ accounting_df <- data.frame(step_num,
                             reasoning)
 
 colnames(accounting_df) <- c('Step','Number of Samples','Samples Removed', 'Reason')
-knitr::kable(accounting_df, caption="Table 2: Accounting Table", align = "c")
+knitr::kable(accounting_df, align = "c")
+```
 
+```{r, number-of-samples, fig.cap='Number of Samples', fig.pos='!b'}
 final_tab_df = dplyr::count(df2, rural_cat, sort = TRUE)
 colnames(final_tab_df) <- c('County Type', 'Number of Samples')
-knitr::kable(final_tab_df, caption="Table 3: Final Samples by County Type", align = "c")
+knitr::kable(final_tab_df, align = "c")
 ```
+
+
 
 ## Additional Changes to the Data:
 
@@ -290,9 +295,11 @@ We will also interpret the coefficient values and what these mean in the context
 
 Below is an analysis of the Classin Linear Model assumptions for $Model_2$ and $Model_3$:
 
-1. **IID Sampling:** There isn't a direct database check for this unfortunately. Looking into how the data was generated, we believe this is IID generally. The data was gathered from independent surveys within the Texas population for all models generated across all counties. There may be instances of sample clustering given that individuals in counties may have influenced individuals in neighboring counties. However, the sample size for the analysis is sufficient to minimize this possible impact.
+1. **IID Sampling:** There isn't a direct database check for this unfortunately. Looking into how the data was generated, we believe this is IID generally. The data was gathered from independent surveys within the Texas population for all models generated across all counties. There may be instances of sample clustering given that individuals in counties may have influenced individuals in neighboring counties as well as being subject to statewide restrictions on implementation of COVID transmission mitigration strategies (e.g., mask mandates)[^no_mask]. However, the sample size for the analysis is sufficient to minimize this possible impact.
 
-2. **No Perfect Colinearity:** This can be assessed through examination of the variance inflation factor (VIF). The results for the VIF analysis are seen in the table below. Running a VIF in R for $Model_2$and $Model_3$, we see the VIF scores are relatively low (below 5) for the predictor variables in $Model_2$. However, upon review of $Model_3$, this is not the case. With VIF factors greater than 5, the both age variables would be candidates for removal outright. When reviewing the population density variable in $Model_3$, it remains significant for $Model_2$. Additionally, when viewing the variable relationships between the two age variables and population in Figure 5 (GGally), strong linear relationships can be viewed which would also indicate almost near perfect colinearity and thus should be removed from the model.
+[^no_mask]: https://gov.texas.gov/news/post/governor-abbott-issues-executive-order-prohibiting-government-entities-from-mandating-masks
+
+2. **No Perfect Colinearity:** This can be assessed through examination of the variance inflation factor (VIF). The results for the VIF analysis are seen in the table below. Running a VIF in R for $Model_2$ and $Model_3$, we see the VIF scores are relatively low (below 5) for the predictor variables in $Model_2$. However, upon review of $Model_3$, this is not the case. With VIF factors greater than 5, the both age variables would be candidates for removal outright. When reviewing the population density variable in $Model_3$, it remains significant for $Model_2$. Additionally, when viewing the variable relationships between the two age variables and population in Figure 5 (GGally), strong linear relationships can be viewed which would also indicate almost near perfect colinearity and thus should be removed from the model.
 
 ```{r VIF & correlation, echo=FALSE}
 
