@@ -38,16 +38,16 @@ Summer vacations in the United States are synonymous with sunny, leisurely days 
 As infection and vaccination rates oscillate regionally along with government policies for business operation restrictions in the United States, our team of data scientists will look to answer the following research question in more detail using linear regression techniques: 
 
 Do COVID-19 infection rates impact vacation travel distance for U.S. residents in the state of Texas? 
-How does income, population density, and covid regulations in each county impact traveling? 
+Does income, population density, unemployment rates, and age in Texas counties impact traveling? 
 
-We will analyze datasets pertaining to these variables for Texas counties and create three models to understand if causal relationships exist between the number of long distance trips, population income, population density (rural or urban counties). Our hypothesis is that an there is a causal relationship between """
+We will analyze datasets from June, 2021 pertaining to these variables for Texas counties and create three models to understand if causal relationships exist between the number of long distance trips, population income, population density (rural or urban counties). Our hypothesis is that an there is a causal relationship between """
 
 -->Need to explain distance of travel with bs TRANSPORT data
 -->Need to add more to causal theory to justify variable selection
 
 ## Operationalization
 
-To create our dataframe, we cleaned and filtered data from multiple sources of data and joined based on texas county name or code. 
+To create our dataframe, we cleaned and filtered data from multiple sources of data and joined based on texas county name or code from June, 2021. 
 
 #### Operationalization of focus variables
 We gathered covid case and death data from NYT. We gathered trip distance data from the Bureau of Transportation, which they record based on data gathered from personal mobile devices. This data was presented as number of travelers in binned distances. We defined a short trip as less than 100 miles and long trips as greater than 100 miles. This was decided under the assumption that distances traveled of less than 100 miles are for the purpose of commuting, while greater than 100 miles indicated vacation travel. Hand in hand with this variable is our indicator variable for urban vs rural setting *** how did we decide this again, population threshold?**** under the assumption that those who live in rural settings are likely to commute further than those in an urban setting. Finally, we believe that median household income plays a significant role in an individual's ability to take vacations. We pulled this directly from the US Census Bureau. 
@@ -110,7 +110,7 @@ df %>%
     median_income=log(median_income+1),
     unemp_rate = log(unemp_rate+1)
   ) %>%
-  select(long_trip, cases, deaths, median_income, unemp_rate, density, pct_lt17, pct_gt65) %>%
+  select(long_trip, cases, deaths, median_income, povery_rate, density, pct_lt17, pct_gt65) %>%
   GGally::ggpairs(.,
                legend = 1,
                aes(color = County),
@@ -177,17 +177,17 @@ Upon final review of the dataset, there are no additional changes required to pr
 
 ## A Model Building Process
 
-To investigate the causal relationships between distance traveled and variables within the dataset, a linear regression was performed in R Studio for three models. The first model is limited to study only key variables of interest for measurement. The second model expands upon the first model to also include key explanatory variables and covariates that are hypothesized to improve performance of the previous model. The third model is all-inclusive of the variables available to the team at the time of data gathering. Details of each model analyzed can be found below. 
+To investigate the causal relationships between distance traveled and variables within the dataset, a linear regression was performed in R Studio for three models. The third model is all-inclusive of the variables available to the team at the time of data gathering. Details of each model analyzed can be found below. 
 
+Here is the first model, which is limited to study only key variables of interest for measurement based on our hypotheses. Our key input variable is covid cases and key output is number of trips greater than 100 miles. We also chose to add an indicator for rural counties because it could be directly related to trip distance, as well as median income which plays a role in a person's ability to take vacations in the first place. 
 $$
   Model 1 = f(\text{log(Number of Long Trips)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)})  + \beta_2 h(\text{Rural County}) + \beta_3 h(\text{Median Income})
 $$ 
-
-
+The second model expands upon the first model to also include key explanatory variables and covariates that are hypothesized to improve performance of the previous model. Here, we added in unemployment rate to assess if the impact of covid to that county affected travel.
 $$
   Model 2 = f(\text{log(Number of Long Trips)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)})  + \beta_2 h(\text{Rural County}) + \beta_3 h(\text{Median Income}) + \beta_4 h(\text{Unemployment Rate}) + \beta_5 h(\text{log(Population Density})
 $$
-
+Finally in the third model, we added in age demographics as percent under 17/over 65 as another potential source that influences travel midst covid cases due to the nature of how covid affects those at different ages.
 $$
   Model 3 = f(\text{log(Number of Long Trips)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)})  + \beta_2 h(\text{Rural County}) + \beta_3 h(\text{Median Income})
   + \beta_4 h(\text{Unemployment Rate}) + \beta_5 h(\text{log(Population Density}) + \beta_6 h(\text{log(% Age < 17}) + \beta_7 h(\text{log(% Age < 17})
@@ -201,23 +201,25 @@ The results from the linear regression analysis can be seen below for each model
 
 #need to change these to per capita data
 model1 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + log(median_income+1), data = df) #limited model
-model2 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + median_income + unemp_rate + log(density), data = df)
-model3 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + median_income + unemp_rate + log(density) + pct_lt17 + pct_gt65, data = df) #final model
+model2 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + log(median_income+1) + povery_rate+ log(density), data = df)
+model3 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + log(median_income+1) + povery_rate+ log(density) + pct_lt17 + pct_gt65, data = df) #final model
 stargazer(model1, model2, model3, type='text', title="Results", align=TRUE)
 ```
+From this output table, we can see most of our hypotheses about the variables we included in our model were correct and do have a statistically significant contribution to our model already. 
+
 Additionally, to indicate if any of the models provide a better fit to the dataset than a model that contains no independent variables, an F test was performed. The results for each model are shown below:
 ```{r F Test}
 #Run F test to show statistical significance of additional variables
 anova(model1, model2, model3, test = "F")
 ```
-From the F-test,  we can see the the addition of the variables into model 2 and model 3 do contribute signficant information to our model based off of the derived p-values.
+From the F-test,  we can see the the addition of the variables into model 2 and model 3 do contribute significant information to our model based off of the derived p-values.
 
 Last, the significance of individual regression coefficients was tested using robust standard errors in R studio for model 3. The results are shown below: 
 ```{r coeftest}
 #Run coeftest to show statistical significance of all variables in the model with robust standard errors
-coeftest(model2, vcov = vcovHC(model3, type="HC1"))
+coeftest(model3, vcov = vcovHC(model3, type="HC1"))
 ```
-From the t-test, we can see that Covid-19 cases and median income are statistically significant. Additionally, the percentage of adults greather than 65, the population density, and the Covid-19 death variables are even more statistically significant.
+From the t-test, we can see that Covid-19 cases and median income are statistically significant. Additionally, the percentage of adults greater than 65, the population density, and the Covid-19 death variables are even more statistically significant.
 
 ## Discussion
 
