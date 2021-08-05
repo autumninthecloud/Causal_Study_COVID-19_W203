@@ -42,15 +42,17 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Introduction
 
-Summer vacations in the United States are synonymous with sunny, leisurely days spent with loved ones. As Ella Fitzgerald so aptly sings, “Summertime, and the living is easy.” However, travel in the recent peak-vacation months has certainly deviated from this idealistic frame of mind with the onset of the COVID-19 pandemic in early 2020. The global travel industry has experienced sharp declines in Revenue. Specifically in the United States, “travel spending totaled a mere $679 billion in 2020, an unprecedented 42% annual decline (nearly $500 billion) from 2019,” according to analysis from the U.S. Travel Association. Our hypothesis as to why this decline has occurred is due directly to the presence of the COVID-19 virus and the number of cases. As virus infection oscillate regionally in the United States, our team of data scientists will look to answer the following primary research question using linear regression statistical techniques: 
+Summer vacations in the United States are synonymous with sunny, leisurely days spent with loved ones. As Ella Fitzgerald so aptly sings, “Summertime, and the living is easy.” However, travel in the recent peak-vacation months has certainly deviated from this idealistic frame of mind with the onset of the SARS-CoV-2 (COVID-19) pandemic in early 2020. The global travel industry has experienced sharp declines in Revenue. Specifically in the United States, “travel spending totaled a mere \$679 billion in 2020, an unprecedented 42% annual decline (nearly \$500 billion) from 2019,” according to analysis from the U.S. Travel Association[^usta]. Our hypothesis as to why this decline has occurred is due directly to the volume of COVID-19 number of cases. As virus infection oscillate regionally in the United States, our team of data scientists will look to answer the following primary research question using linear regression statistical techniques: 
 
 Do COVID-19 cases impact vacation travel trips for Texas for June, 2021?
 
-Our primary hypothesis is that there is a causal relationship between the number of COVID-19 cases and the number of vacation trips; when COVID-19 cases increase, the number of vacation travel trips decrease. To investigate, a dataset comprising of Texas county data will be analyzed. Based on the data, our team will also investigate the following secondary question:
+Our primary hypothesis is that there is a causal relationship between the number of COVID-19 cases and the number of vacation trips; when COVID-19 cases increase, the number of vacation travel trips decrease. To investigate, several demographic, mobility, and COVID-19 data sources will be analyzed. Based on the data, our team will also investigate the following secondary question:
 
-Do income, population density, age, and/or county type (rural or urban) per county impact traveling for Texas residents? 
+Does the median income, the population density, and/or the age by county type (rural or urban) impact vacation travel for Texas residents in June, 2021? 
 
-Our team also theorizes that individuals at higher risk of COVID-19 infection would travel less (e.g. older populations). For the analysis, we will create three models to understand if causal relationships exist between the outcome variable, the number of long distance trips, and the control variables per Texas county: income, population density, age, and COVID-19 cases . We will use an indicator variable, rural counties, to understand performance of our models for both rural or urban counties subsets. By creating causal models with these variables, we intend to answer our research questions to provide insight about how vacation travel has been impacted so that interested stakeholders can gain an understanding of how to improve the revenue declines in the travel industry in the near future.
+Our team also theorizes that individuals at higher risk of COVID-19 (e.g. older populations) infection would travel less than younger populations. For the analysis, we will create three models to understand if causal relationships exist between the outcome variable, the number of long distance leisure trips, and the control variables for each Texas county: income, population density, age, and COVID-19 cases . We will use an indicator variable, rural counties, to understand performance of our models for both rural or urban counties subsets. By creating causal models with these variables, we intend to answer our research questions to provide insight about how vacation travel has been impacted so that interested stakeholders can gain an understanding of how to improve the revenue declines in the travel industry in the near future.
+
+[^usta]:https://www.ustravel.org/toolkit/covid-19-travel-industry-research
 
 # Data Description
 
@@ -58,13 +60,16 @@ Operationalization of our research question required data from four sources: the
 
 The NYT has maintained a robust public dataset of county-level, time-series COVID-19 data on GitHub and holds records dating back to the beginning of COVID-19. The dataset aggregates state and municipal government health department reports of cumulative cases and deaths for each US county daily from COVID-19. NYT data does not match deaths or cases for patients to their home state (e.g., vacationers), nor does it identify if a case occurred in one county, but a subsequent death occurred in another. Therefore, there is a likely mismatch between this data and those reported by individual states and counties.
 
-For our investigation, we selected on cases and deaths in the month of June 2021, to best operationalize summer. The case and death counts were aggregated by county to mitigate time-series affects on modeling. The death counts were identified as being directly related to the COVID-19 infection and not from other instances (e.g., homicide), or unrelated comorbidities (e.g., cancer). 
+For our investigation, we selected on cases, aggregated by county, in the month of June 2021 to mitigate time-series effects on modeling. The death count measurements were not selected because of the high correlation with the case count measurements: deaths counts are a subset of case counts.
 
-The Texas Association of Counties proved to be a rich source of demographic and economic data for our target population. This database aggregates national and state data sources (e.g., Census Bureau, Texas Workforce Commission, United States Bureau of Labor Statistics, United States Bureau of Economic Analysis, and the Texas Demographic Center). The lineage of the TAC data was challenging to individually trace. All of the data originated from primary sources at the Federal or State level, but there was no readily available documentation to map columnar data back to its primary source. We selected five measurements to support our causal theory: county population and density, median household income, $$number of individuals in poverty, and the unemployment rate. The economic measurements of poverty and employment were hypothesized to have an inverse relationship with enabling people to take long vacation trips, where median income should have a more direct relationship$$. The county population served as a control for the economic variables and density was hypothesized to encourage longer trips to more open spaces.
 
-The decennial survey conducted by the Census results in an incredibly rich national database of economic, geographic, demographic, and social measures. While the vast database has many of the measurements useful to support our causal theory, as the TAC database queries held a majority of these, the decennial survey did proffer a means to generate an indicator variable identifying rural or urban counties. This variable was important since we hypothesized that rural counties may experience higher long trip counts due to their geographies. 
+The Texas Association of Counties proved to be a rich source of demographic and economic data for our target population. This database aggregates national and state data sources (e.g., Census Bureau, Texas Workforce Commission, United States Bureau of Labor Statistics, United States Bureau of Economic Analysis, and the Texas Demographic Center). The lineage of the TAC data was challenging to individually trace. All of the data originated from primary sources at the Federal or State level, but there was no readily available documentation to map columnar data back to its primary source. We selected four measurements to support our causal theory: county density, median household income, and populations aged over 65 years and under 17 years. The economic measurement of median income should have a significant role in an individual's ability to take vacations. The county population served as a control for the economic variables and density was hypothesized to encourage longer trips to more open spaces.
 
-Our final course were data produced by the US Department of Transportation's Bureau of Transportation Statistics (USBTS). These data are experimental *estimates* of mobility gathrered from aggregated mobile device data. USBTS states that these data are experimental, and but significant effort was made to ensure proper population weighting, and data multi-sourcing (to reduce variance in spacial and temporal measurements common from a single source) were implemented before any of the statistics were calculated. Trips are defined as a longer than 10 minute stop at a location that is not home. Trips are not distiguish by mode of transporation (i.e., air, train, bus, car, or bike). For our analyis, we were interested in only trips longer than 100 miles in Texas in June of 2021 as this best operationalize the concept of a vacation[^bts01].
+The decennial survey conducted by the Census results in an incredibly rich national database of economic, geographic, demographic, and social measures. While the vast database has many of the measurements useful to support our causal theory, as the TAC database queries held a majority of these, the decennial survey did proffer a means to generate an indicator variable identifying rural or urban counties. 
+
+Our final final data source was produced by the US Department of Transportation's Bureau of Transportation Statistics (USBTS). These data are experimental *estimates* of mobility gathered from aggregated mobile device data. USBTS states that these data are experimental, and but significant effort was made to ensure proper population weighting, and data multi-sourcing (to reduce variance in spacial and temporal measurements common from a single source) were implemented before any of the statistics were calculated. Trips are defined as a longer than 10 minute stop at a location that is not home. Trips are not distiguish by mode of transporation (i.e., air, train, bus, car, or bike). For our analysis, we were interested in only trips longer than 100 miles in Texas in June of 2021 as this best operationalized the concept of vacation travel[^bts01].
+
+USBTS conducted a survey[^bts01] that characaterized long distance travel as trips over 50 miles from home. The distriubtion of trips in that survey included leisure, business, and commuter travel. To operationalize out outcome variable more concretely, we focused the dataset on trips over 100 miles to reduced noise from non-leisure travel[^brookings].
 
 
 [^bts01]: https://www.bts.gov/statistical-products/surveys/national-household-travel-survey-long-distance-travel-quick-facts
@@ -72,12 +77,7 @@ Our final course were data produced by the US Department of Transportation's Bur
 [^uscb]: United States Census Bureau. (2011, 11 22). Decennial Census, 2010. Explore Census Data. Retrieved 07 21, 2021, from https://data.census.gov/
 [^tac]: Texas Association of Counties. (2021, 08 04). QueriesCIP. County Information Program. Retrieved 08 02, 2021, from https://imis.county.org/iMIS/CountyInformationProgram/
 [^bts]: Department of Transportation. (2021, 08 02). Trips by Distance. Bureau of Transportation Statistics. Retrieved 07 19, 2021, from https://data.bts.gov/Research-and-Statistics/Trips-by-Distance/w96p-f2qv
-
----
-#### Operationalization of focus variables
-
-__integrating below still__
-We gathered COVID-19 case and death data from NYT. We gathered trip distance data from the Bureau of Transportation, which they record based on data gathered from personal mobile devices. This data was presented as number of travelers in binned distances. We defined a short trip as less than 100 miles and long trips as greater than 100 miles. This was decided under the assumption that distances traveled of less than 100 miles are for the purpose of commuting, while greater than 100 miles indicated vacation travel. Hand in hand with this variable is our indicator variable for urban vs rural setting *** how did we decide this again, population threshold?**** under the assumption that those who live in rural settings are likely to commute further than those in an urban setting. Finally, we believe that median household income plays a significant role in an individual's ability to take vacations. We pulled this directly from the US Census Bureau.
+[^brookings]: https://www.brookings.edu/wp-content/uploads/2016/07/Srvy_JobsProximity.pdf
 
 #### Operationalization of additional variables
 To enrich our model and limit OVB, we brainstormed a number of additional variables that could affect travel rates during COVID-19. For one, we looked at how COVID-19 affected the county, $$through the unemployment rate$$. We also looked at age, gender, income demographics. Then, in addition to income demographics, we focused on percent of younger folks, as defined as those younger than 17 and older folks as defined as those older than 65 because of the nature of how COVID-19 affects an individual.
@@ -94,36 +94,40 @@ df <- read.csv('./../data/processed/covid_trips_processed.csv')
 
 Table \@ref(tab:var-summary) below displays some information about the mean, median, minimum and maximum values for each variable. Figure \@ref(fig:ggally) below depicts the distribution and correlation of each variable in our dataset by county type (where '0' indicates an urban county). From Figure \@ref(fig:ggally), it can be observed that some of the variables are not distributed normally, are skewed,  and thus require transformations. More specifically, these variables are: Total Population, Total Cases, Population Density. The outcome variable, `long_trips`, will also require the same transformation. Upon further analysis, logarithmic transformations were chosen to normalize the distribution and minimize skewness.
 
-```{r var-summary, echo=FALSE, message=FALSE, fig.cap='Texas County Variable Characteristics', fig.pos='!b'}
-#Example Table
-df$rural_cat <- ifelse(df$is_rural == 1, "Rural", "Urban")
-table1::label(df$density) <- "Population Density"
-table1::label(df$cases) <- "COVID-19 Cases"
-#table1::label(df$deaths) <- "COVID-19 Deaths"
-# table1::label(df$unemployed) <- "Unemployment Count"
-table1::label(df$median_income) <- "Median Income ($)"
-# table1::label(df$in_poverty) <- "Poverty Count"
-table1::label(df$lt17) <- "Age < 17 Years"
-table1::label(df$gt65) <- "Age > 65 Years"
-# table1::label(df$is_rural) <- "Type"
-table1::table1(~density + cases + median_income + lt17 + gt65 | rural_cat, data = df, topclass="Rtable1-zebra", overall = "Total")
-# table1::table1(~density + cases + deaths + median_income + unemployed + in_poverty + lt17 + gt65 | rural_cat, data = df, caption = "Table 1: Texas County Variable Characteristics", topclass="Rtable1-zebra", overall = "Total")
+```{r var-description}
+
+table(
+  source = c(1, 2, 3),
+  description = c("a", "b", "c"),
+  variable = c("A", "B", "C")
+)
 ```
 
 
-Below are histograms of variables that did not follow normal distribution and required transformation. We applied a logarithmic transform to each of these variables, which can be seen in the collective Figure \@ref(tab:var-plots). *why logs*
+```{r var-summary, echo=FALSE, message=FALSE, fig.cap='Texas County Variable Characteristics', fig.pos='!b'}
+df$rural_cat <- ifelse(df$is_rural == 1, "Rural", "Urban")
+table1::label(df$long_trip) <- "Vacation Trip Count"
+table1::label(df$cases) <- "COVID-19 Cases"
+table1::label(df$median_income) <- "Median Income ($)"
+table1::label(df$density) <- "Population Density"
+table1::label(df$lt17) <- "Age < 17 Years"
+table1::label(df$gt65) <- "Age > 65 Years"
+table1::table1(~long_trip + density + cases + median_income + lt17 + gt65 | rural_cat, data = df, topclass="Rtable1-zebra", overall = "Total")
+```
+
+
+Below are histograms of variables that did not follow normal distribution and required transformation. We applied a logarithmic transform to each of these variables, which can be seen in the collective Figure \@ref(tab:var-plots).
 
 
 ```{r var-plots, fig.align='center', message=FALSE, echo=FALSE}
 attach(df)
-par(mfrow=c(2,2))
-hist(cases, main="Figure 1: Histogram of COVID-19 Cases")
-#hist(deaths, main="Histogram of COVID-19 Deaths")
-hist(long_trip, main="Figure 2: Histogram of Trip Count")
-hist(density, main="Figure 3: Histogram of Population Density")
-#hist(unemployed, main="Histogram of Unemployment")
-hist(median_income, main="Figure 4: Histogram of Median Income ($)")
-# summary((deaths+1)^(1/2))
+par(mfrow=c(3,2))
+hist(long_trip, main="Vacation Trip Count")
+hist(cases, main="COVID-19 Cases")
+hist(median_income, main="Median Income ($)")
+hist(density, main="Population Density")
+hist(lt17, main="Age < 17 Years")
+hist(gt65, main="Age > 65 Years")
 ```
 
 
@@ -137,11 +141,9 @@ df %>%
   mutate(
     # log(x+1) to preserve negative and zero valued samples
     cases = log(cases+1),
-    # deaths = log(deaths+1),
     long_trip = log(long_trip),
     density = log(density),
     median_income=log(median_income+1),
-    # unemployed = log(unemployed+1),
     lt17 = log(lt17),
     gt65 = log(gt65)
   ) %>%
@@ -153,19 +155,14 @@ df %>%
                upper = list(continuous = wrap("cor", size = 2.5)),
                lower = list(continuous = wrap("points", alpha = 0.5, size=0.3)),
                diag = list(continuous = wrap("densityDiag", alpha = 0.5)),
-               columnLabels=c("Distance", "Cases", "Income", "Pop Density", "Age < 17","Age > 65"))+
+               columnLabels=c("Distance", "Cases", "Income", "Density", "Age < 17","Age > 65"))+
                theme(legend.position = "bottom")
-
-# ggpairs(df, columns = 3:ncol(df), legend = 1, aes(color = County), title = "Figure 1: Variable Characterstics")
-# #                upper = list(continuous = wrap("cor", size = 2.5)),
-# #                lower = list(continuous = wrap("points", alpha = 0.5, size=0.3)),
-# #                diag = list(continuous = wrap("densityDiag", alpha = 0.5)))
 
 ```
 
 ## Accounting Tables
 
-To demonstrate the operationalization of the data, Tables \@ref(tab:accounting-table) and \@ref(tab:number-of-samples) below display the original value counts from the dataset as well as how many values were removed as a part of filtering the dataset to remove all states except Texas. For the analysis, 230 responses were analyzed as shown in Table 1. Table 2 depicts the county type breakdown for rural or urban classification as well.
+To demonstrate the operationalization of the data, Table \@ref(tab:accounting-table) below display the original value counts from the dataset as well as how many values were removed as a part of filtering the dataset to remove all states except Texas. For the analysis, 230 responses were analyzed as shown in Table \@ref(tab:accounting-table). 
 
 ```{r accounting-table, echo=FALSE, fig.cap='Variable Characterstics', fig.pos='!b'}
 df2 <- df
@@ -200,37 +197,33 @@ colnames(accounting_df) <- c('Step','Number of Samples','Samples Removed', 'Reas
 knitr::kable(accounting_df, align = "c")
 ```
 
-```{r, number-of-samples, fig.cap='Number of Samples', fig.pos='!b'}
-final_tab_df = dplyr::count(df2, rural_cat, sort = TRUE)
-colnames(final_tab_df) <- c('County Type', 'Number of Samples')
-knitr::kable(final_tab_df, align = "c")
-```
+## Additional Modifications to the Data:
 
-
-
-## Additional Changes to the Data:
-
-Upon final review of the dataset, there are no additional changes required to prepare the dataset for data exploration and subsequent model creation. Outliers or incorrect data are not observed upon final inspection. The Accounting Table capture the changes made through cleaning and filtering as indicated previously. Table 2 above also displays the subset per county type for the overall dataset.
+Upon final review of the dataset, there are no additional changes required to prepare the dataset for data exploration and subsequent model creation. Outliers or incorrect data are not observed upon final inspection. The Accounting Table captures the changes made through cleaning, filtering, and transforming as indicated previously. With a sample size over 100, a large-sample linear model can be built.
 
 # A Model Building Process
 
-To investigate the causal relationships between distance traveled and variables within the dataset, a linear regression was performed in R Studio for three models. The first model includes only our base variables. In the second model, we added additional county characteristics. In the final model, we added in another COVID-19 related factor.
+To investigate the causal relationships between distance traveled and variables within the dataset, a linear regression was performed in R Studio for three models. The first model includes only our the key variables associated with our primary hypothesis: that COVID-19 cases decrease vacation trip counts. In the second model, we added additional county econometric and demographic characteristics. In the final model, we added additional demographic variables for age groups.
 
-Here is the first model, which is limited to study only key variables of interest for measurement based on our hypotheses. Our key input variable is COVID-19 cases and key output is number of trips greater than 100 miles. We also chose to add an indicator for rural counties because it could be directly related to trip distance
+## Model Equations
 
-$Model_1: f(\text{log(Long Trip Count)}) = \beta_0 + \beta_1 g(\text{log(COVID-19 Cases)}) + \beta_2 g(\text{Rural County}))$
+**Model 1: **
 
-The second model expands upon the first model to also include key explanatory variables and covariates that are hypothesized to improve performance of the previous model. Here, we added in median income and density of the county as additional descriptors of the county.
+$(\text{log(Long Trip Count)}) = \beta_0 + \beta_1(\text{log(COVID-19 Cases)}) + \beta_2(\text{Rural County}))$
 
-$Model_2: f(\text{log(Long Trip Count)}) = \beta_0 + \beta_1 g(\text{log(COVID-19 Cases)}) + \beta_2 g(\text{Rural County})) + \beta_3 h(\text{Median Income}) + \beta_4 h(\text{County Density})$
 
-Finally in the third model, we added in age demographics as percent under 17/over 65 as another potential source that influences travel midst COVID-19 cases due to the nature of how the virus affects those at different ages.
+**Model 2:**
 
-$Model_3: f(\text{log(Long Trip Count)}) = \beta_0 + \beta_1 g(\text{log(COVID-19 Cases)}) + \beta_2 g(\text{Rural County})) + \beta_3 h(\text{Median Income}) + \beta_4 h(\text{County Density}) + \beta_5 h(\text{Population under 17}) + \beta_6 h(\text{Population over 65})$
+$(\text{log(Long Trip Count)}) = \beta_0 + \beta_1(\text{log(COVID-19 Cases)}) + \beta_2(\text{Rural County})) + \beta_3(\text{log(Median Income)}) + \beta_4(\text{log(County Density)})$
+
+**Model 3:**
+
+$(\text{log(Long Trip Count)}) = \beta_0 + \beta_1(\text{log(COVID-19 Cases)}) + \beta_2(\text{Rural County})) + \beta_3(\text{log(Median Income)}) + \beta_4(\text{log(County Density)}) + \beta_5(\text{log(Population under 17)}) + \beta_6(\text{log(Population over 65)})$
 
 # Linear Regression Results
 
 The results from the linear regression analysis can be seen below for each model:
+
 ```{r model creation, echo=FALSE, warning=FALSE}
 model1 <- lm(log(long_trip) ~ log(cases+1) + is_rural, data = df) #limited model
 model2 <- lm(log(long_trip) ~ log(cases+1) + is_rural + log(median_income+1) + log(density), data = df)
@@ -240,13 +233,15 @@ stargazer(model1, model2, model3, type='text', title="Results", align=TRUE)
 
 ```
 
-## Discussion
+## Results Discussion
+
 From this output table, we can discern quite a bit of information.
 
 First, we consider the models holistically. Here are some of our observations:
-* In $Model_1$, all of our variables are extremely significant, though in the opposite direction as expected. We would expect an inverse relationship between COVID-19 cases and travel, though it seems that this model is producing a positive relationship.
-* In $Model_2$, when county density is factored in, the presence of COVID-19 seems to have less positive of an effect on travel and that higher density counties see more travel.
-* In $Model_3$ with age factored in, we see that actually the most statistically significant effect on long trips are median income of the household and presence of kids under 17.
+* In `Model 1`, all of our variables are extremely significant, though in the opposite direction as expected. We would expect an inverse relationship between COVID and travel, though it seems that this model is producing a positive relationship.
+* In `Model 2`, when county density is factored in, the presence of COVID seems to have less positive of an effect on travel and that higher density counties see more travel.
+* In `Model 3` with age factored in, we see that actually the most statistically significant effect on long trips are median income of the household and presence of kids under 17.
+
 * In terms of $R^2$ and RSE, we are improving with each model.
 * The addition of our chosen parameters for each following model is also statistically better than the previous, as indicated by the F statistic.
 
@@ -285,21 +280,20 @@ $$RECHECK THIS SECTION FOR VALUES$$
 
 
 We will also interpret the coefficient values and what these mean in the context of our model. Almost all of our variables needed a log transform, including the output, making this a log-log regression. These regressions are most intuitive to understand in terms of percent increases.
-* First to note is our persistently significant constant in each model. Regardless of any variables, we are getting between ~300 (as with model3) and over 8000 (as with model2) trips over 100 miles. This is calculated as e^(Constant).
-* In $Model_1$, for every percent increase in cases, we are getting almost half a percent increase in trips. The positive relationship doesnt make much sense, so we will look to the other models.
-* In $Model_2$, we see that density has a more positive relationship with trips, with every percent increase in county density modeled to a half percent increase in trips. Also the positive relationship between COVID-19 cases and trips has decreased to resulting in 0.15 and 0.25% increase in trips respectively.
-* In $Model_3$, COVID-19 cases become insignificant. The coefficients have become slightly negative as in increase in cases decreases trips, which is in line with our original hypothesis, but is not significant. Instead, for every percent median income of the county increases by, the amount of long trips decrease by 0.3%. This could indicate that more affluent counties trust science and err on the safe side in the midst of COVID-19. Finally, in our 3rd model, counties with more people under 17 years of age are more likely to take long trips. Due to the time frame of our analysis, this also makes sense because june is the start of summer break when many families like to take vacations together.
-
+* First to note is our persistently significant constant in each model. Regardless of any variables, we are getting between ~300 (as with model3) and over 8000 (as with model2) trips over 100 miles. This is calculated as $e^(Constant)$.
+* In `Model 1`, for every percent increase in cases, we are getting almost half a percent increase in trips. The positive relationship doesnt make much sense, so we will look to the other models.
+* In `Model 2`, we see that density has a more positive relationship with trips, with every percent increase in county density modeled to a half percent increase in trips. Also the positive relationship between COVID cases and trips has decreased to resulting in 0.15 and 0.25% increase in trips respectively.
+* In `Model 3`, COVID cases become insignificant. The coefficients have become slightly negative as in increase in cases decreases trips, which is in line with our original hypothesis, but is not significant. Instead, for every percent median income of the county increases by, the amount of long trips decrease by 0.3%. This could indicate that more affluent counties trust science and err on the safe side in the midst of COVID. Finally, in our 3rd model, counties with more people under 17 years of age are more likely to take long trips. Due to the time frame of our analysis, this also makes sense because june is the start of summer break when many families like to take vacations together.
 
 # Model Limitations
 
-Below is an analysis of the Classin Linear Model assumptions for $Model_2$ and $Model_3$:
+Below is an analysis of the Classin Linear Model assumptions for $Model 2$ and $Model 3$:
 
 1. **IID Sampling:** There isn't a direct database check for this unfortunately. Looking into how the data was generated, we believe this is IID generally. The data was gathered from independent surveys within the Texas population for all models generated across all counties. There may be instances of sample clustering given that individuals in counties may have influenced individuals in neighboring counties as well as being subject to statewide restrictions on implementation of COVID transmission mitigration strategies (e.g., mask mandates)[^no_mask]. However, the sample size for the analysis is sufficient to minimize this possible impact.
 
 [^no_mask]: https://gov.texas.gov/news/post/governor-abbott-issues-executive-order-prohibiting-government-entities-from-mandating-masks
 
-2. **No Perfect Colinearity:** This can be assessed through examination of the variance inflation factor (VIF). The results for the VIF analysis are seen in the table below. Running a VIF in R for $Model_2$ and $Model_3$, we see the VIF scores are relatively low (below 5) for the predictor variables in $Model_2$. However, upon review of $Model_3$, this is not the case. With VIF factors greater than 5, the both age variables would be candidates for removal outright. When reviewing the population density variable in $Model_3$, it remains significant for $Model_2$. Additionally, when viewing the variable relationships between the two age variables and population in Figure 5 (GGally), strong linear relationships can be viewed which would also indicate almost near perfect colinearity and thus should be removed from the model.
+2. **No Perfect Colinearity:** This can be assessed through examination of the variance inflation factor (VIF). The results for the VIF analysis are seen in the table below. Running a VIF in R for $Model 2$ and $Model 3$, we see the VIF scores are relatively low (below 5) for the predictor variables in $Model 2$. However, upon review of $Model 3$, this is not the case. With VIF factors greater than 5, the both age variables would be candidates for removal outright. When reviewing the population density variable in $Model 3$, it remains significant for $Model 2$. Additionally, when viewing the variable relationships between the two age variables and population in Figure 5 (GGally), strong linear relationships can be viewed which would also indicate almost near perfect colinearity and thus should be removed from the model.
 
 ```{r VIF & correlation, echo=FALSE}
 
@@ -312,25 +306,25 @@ vif_values3
 #Put values into nicer format table
 ```
 
-<!-- 3. **Linear Conditional Expectation:** For this assumption, the residuals for linear relationships must be evaluated. By plotting the residuals, as seen below in the first scatter plot for both $Model_2$ and $Model_3$ ('Residual vs Fitted'). We generally see a linear line as we move across predictor values with the residuals with no strong pattern. By transforming the variables as indicated previously logarithmically, we are able to see this linear relationship across all predictor values. -->
+3. **Linear Conditional Expectation:** For this assumption, the residuals for linear relationships must be evaluated. By plotting the residuals, as seen below in the first scatter plot for both $Model 2$ and $Model 3$ ('Residual vs Fitted'). We generally see a linear line as we move across predictor values with the residuals with no strong pattern. By transforming the variables as indicated previously logarithmically, we are able to see this linear relationship across all predictor values.
 
-<!-- 4. **Homoskedastic Errors:** This assumption is examined by looking for constant error variance across the entire range of the x's (homoskedastic errors across the range of the x's). By plotting fitted values vs. the square root of the standardized residuals for the $Model_2$ and model 3 ('Scale-Location' figure), there is an even or equal spread dispersion across the x values. Therefore $Model_2$ and $Model_3$ both meet this condition when including the transformed variables. -->
+4. **Homoskedastic Errors:** This assumption is examined by looking for constant error variance across the entire range of the x's (homoskedastic errors across the range of the x's). By plotting fitted values vs. the square root of the standardized residuals for the $Model 2$ and model 3 ('Scale-Location' figure), there is an even or equal spread dispersion across the x values. Therefore $Model 2$ and $Model 3$ both meet this condition when including the transformed variables.
 
-<!-- 5. **Normally Distributed Errors:** When investigating a normal distribution of the residuals, the QQ plot is helpful to investigate this assumption. For $Model_2$ and $Model_3$, a nice linear line can be seen between the theoretical quantities and the standardized residuals ('Normal Q-Q'). In conclusion, we meet this assumption with both $Model_2$ and $Model_3$. -->
+5. **Normally Distributed Errors:** When investigating a normal distribution of the residuals, the QQ plot is helpful to investigate this assumption. For $Model 2$ and $Model 3$, a nice linear line can be seen between the theoretical quantities and the standardized residuals ('Normal Q-Q'). In conclusion, we meet this assumption with both $Model 2$ and $Model 3$.
 
-<!-- ```{r CLM assumptions check, echo=FALSE} -->
+```{r CLM assumptions check, echo=FALSE}
 
-<!-- #run this to display the CLM graphs needed to verify CLM assumptions met -->
-<!-- par(mfrow = c(2, 2)) -->
-<!-- plot(model2, col="blue") -->
-<!-- title("Model 2", line = -0.75, outer = TRUE) -->
+#run this to display the CLM graphs needed to verify CLM assumptions met
+par(mfrow = c(2, 2))
+plot(model2, col="blue")
+title("Model 2", line = -0.75, outer = TRUE)
 
-<!-- # Model 3 -->
-<!-- # par(mfrow = c(2, 2)) -->
-<!-- # plot(model3, col="green") -->
-<!-- # title("Model 3", line = -0.75, outer = TRUE) -->
+# Model 3
+# par(mfrow = c(2, 2))
+# plot(model3, col="green")
+# title("Model 3", line = -0.75, outer = TRUE)
 
-<!-- ``` -->
+```
 
 <!-- # Omitted Variable -->
 
