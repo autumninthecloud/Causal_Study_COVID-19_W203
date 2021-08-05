@@ -15,10 +15,10 @@ output:
 ---
 \clearpage
 ```{r install packages, echo=FALSE, message=FALSE}
-# install.packages("table1")
-# install.packages("GGally")
-# install.packages("stargazer")
-# install.packages("tinytex")
+install.packages("table1")
+install.packages("GGally")
+install.packages("stargazer")
+install.packages("tinytex")
 ```
 
 ``` {r load packages, echo=FALSE, message=FALSE}
@@ -87,7 +87,7 @@ As indicated, each source will provide information on county population demograp
 
 ```{r dataframe, echo=FALSE}
 df <- read.csv('./../data/processed/covid_trips_processed.csv')
-# head(df)
+head(df)
 ```
 
 ## Exploratory Data Analysis
@@ -97,16 +97,17 @@ Table 1 below displays some information about the mean, median, minimum and maxi
 ```{r EDA, echo=FALSE, message=FALSE}
 #Example Table
 df$rural_cat <- ifelse(df$is_rural == 1, "Rural", "Urban")
-table1::label(df$density) <- "County Population Density"
-table1::label(df$cases) <- "County Covid-19 Cases"
-table1::label(df$unemployed) <- "County Unemployment Rate"
-table1::label(df$median_income) <- "County Median Income ($)"
-table1::label(df$lt17) <- "County Age < 17 years"
-table1::label(df$gt65) <- "County Age > 65 years"
-# table1::label(df$is_rural) <- "County Type"
-table1::table1(~density + cases + unemployed + median_income + lt17 + gt65 | rural_cat, data = df, caption = "Table 1: Texas County Variable Statistics", topclass="Rtable1-zebra", overall = "Total")
+table1::label(df$density) <- "Population Density"
+table1::label(df$cases) <- "Covid-19 Cases"
+table1::label(df$unemployed) <- "Unemployment Count"
+table1::label(df$median_income) <- "Median Income ($)"
+table1::label(df$in_poverty) <- "Poverty Count"
+table1::label(df$lt17) <- "Age < 17 years"
+table1::label(df$gt65) <- "Age > 65 years"
+# table1::label(df$is_rural) <- "Type"
+table1::table1(~density + cases + unemployed + median_income + lt17 + gt65 | rural_cat, data = df, caption = "Table 1: Texas County Variable Characteristics", topclass="Rtable1-zebra", overall = "Total")
 ```
-Below are histograms of variables that did not follow normal distribution and required transformation. Each of these variables was logarithmically transformed.
+Below are histograms of variables that did not follow normal distribution and required transformation. Each of these variables were logarithmically transformed.
 ```{r scatterplots, message=FALSE, echo=FALSE}
 attach(df)
 par(mfrow=c(3,2))
@@ -114,15 +115,11 @@ hist(cases, main="Histogram of Covid-19 Cases")
 hist(deaths, main="Histogram of Covid-19 Deaths")
 hist(long_trip, main="Histogram of Trip Count")
 hist(density, main="Histogram of Population Density")
-hist(log(median_income), main="Histogram of Median Income")
 hist(unemployed, main="Histogram of Unemployment")
 hist(median_income, main="Histogram of Median Income")
-summary(df$median_income)
-summary(df$long_trip)
-
 ```
 
-
+Upon transformation, below is a condensed view of the statistics of each variable:
 ```{r ggally, echo=FALSE, message=FALSE}
 County = as.factor(df$rural_cat)
 
