@@ -150,6 +150,10 @@ density_f <- density %>%
 d <- merge(x = d_trips, y = d_covid, by = c("fips", "county", "state")) 
 d <- merge(x = rural_ind, y = d, by = c("fips"))
 d <- merge(x = income_f, y = d, by = c("county"))
+d <- d %>% rowwise() %>%
+  mutate(
+    in_poverty = as.integer(0.01 * povery_rate * total_pop)
+  )
 d <- merge(x = density_f, y = d, by = c("county"))
 d <- d %>% drop_na()
 
@@ -186,6 +190,10 @@ unemploy_f <- unemploy %>%
 
 ```{r merge model 2 dataframe}
 d <- merge(x = unemploy_f, y = d, by = c("county"))
+d <- d %>% rowwise() %>%
+  mutate(
+    unemployed = as.integer(0.01 * unemp_rate * total_pop)
+  )
 d <- d %>% drop_na()
 
 knitr::kable(head(d))
@@ -248,11 +256,11 @@ d <- d %>%
     median_income,
     total_pop,
     is_rural,
-    unemp_rate,
+    unemployed,
     density,
     pct_lt17,
     pct_gt65,
-    povery_rate
+    in_poverty
   )
 knitr::kable(head(d))
 ```
