@@ -271,11 +271,11 @@ vif_values3
 #Put values into nicer format table
 ```
 
-<!-- 3. **Linear Conditional Expectation:** For this assumption, the residuals for linear relationships must be evaluated. By plotting the residuals, as seen below in the first scatter plot for both model 2 and model 3 ('Residual vs Fitted'). We generally see a linear line as we move across predictor values with the residuals with no strong pattern. By transforming the variables as indicated previously logarithmically, we are able to see this linear relationship across all predictor values. -->
+<!-- 3. **Linear Conditional Expectation:** For this assumption, the residuals for linear relationships must be evaluated. By plotting the residuals, as seen below in the first scatter plot for both $Model_2$ and $Model_3$ ('Residual vs Fitted'). We generally see a linear line as we move across predictor values with the residuals with no strong pattern. By transforming the variables as indicated previously logarithmically, we are able to see this linear relationship across all predictor values. -->
 
-<!-- 4. **Homoskedastic Errors:** This assumption is examined by looking for constant error variance across the entire range of the x's (homoskedastic errors across the range of the x's). By plotting fitted values vs. the square root of the standardized residuals for the model 2 and model 3 ('Scale-Location' figure), there is an even or equal spread dispersion across the x values. Therefore model 2 and model both meet this condition when including the transformed variables. -->
+<!-- 4. **Homoskedastic Errors:** This assumption is examined by looking for constant error variance across the entire range of the x's (homoskedastic errors across the range of the x's). By plotting fitted values vs. the square root of the standardized residuals for the $Model_2$ and model 3 ('Scale-Location' figure), there is an even or equal spread dispersion across the x values. Therefore $Model_2$ and $Model_3$ both meet this condition when including the transformed variables. -->
 
-<!-- 5. **Normally Distributed Errors:** When investigating a normal distribution of the residuals, the QQ plot is helpful to investigate this assumption. For model 2 and model 3, a nice linear line can be seen between the theoretical quantities and the standardized residuals ('Normal Q-Q'). In conclusion, we meet this assumption with both model 2 and model 3. -->
+<!-- 5. **Normally Distributed Errors:** When investigating a normal distribution of the residuals, the QQ plot is helpful to investigate this assumption. For $Model_2$ and $Model_3$, a nice linear line can be seen between the theoretical quantities and the standardized residuals ('Normal Q-Q'). In conclusion, we meet this assumption with both $Model_2$ and $Model_3$. -->
 
 <!-- ```{r CLM assumptions check, echo=FALSE} -->
 
@@ -305,11 +305,7 @@ vif_values3
 
 <!-- The goal of this analysis was to determine if there existed a causal relationship between distance traveled and COVID-19 infection rates for residents of the state of Texas. Based upon the linear regression analysis above, model 2 would indicate there may be a causal relationship between distance traveled (outcome variable) and the variables found within that model, though with all variables considered, our results do not indicate vacation and COVID cases are necessarily related. -->
 
-<!-- <<<<<<< HEAD -->
-<!-- The goal of this analysis was to determine if there existed a causal relationship between distance traveled and COVID-19 infection rates for residents of the state of Texas. Based upon the linear regression analysis above, model 2 would indicate there may be a causal relationship between distance traveled (outcome variable) and the variables found within that model, though with all variables considered, our results do not indicate vacation and COVID cases are necessarily related. -->
-<!-- ======= -->
 <!-- ### Next Steps -->
-<!-- >>>>>>> 6ca246330f02d2b1f157dc724cc9cf099142c8b0 -->
 
 <!-- For future analysis, it is recommended that COVID-19 policy adherence data per county be incorporated into the model to increase the accuracy. While the Governor of Texas issued detailed protocols or mandates for the state of Texas, the degree to which each county (and thus the individual residents) complied would be useful data to have if such data were to exist. Additionally, incorporating vaccination rates could aid in development of a model with even higher accuracy. Generally, vaccinations could increase confidence among individuals interested in traveling, especially if they have been in long periods of quarantine or government mandated lockdowns. Last, it is highly recommended that any model generated in the future continue to use the latest data available given the oscillation in vaccination rates, government policy, and new or known variants of the COVID-19 virus. -->
 
