@@ -77,12 +77,12 @@ Table 1 below displays some information about the mean, median, minimum and maxi
 df$rural_cat <- ifelse(df$is_rural == 1, "Rural", "Urban")
 table1::label(df$density) <- "County Population Density"
 table1::label(df$cases) <- "County Covid-19 Cases"
-table1::label(df$unemp_rate) <- "County Unemployment Rate"
+table1::label(df$unemployed) <- "County Unemployment Rate"
 table1::label(df$median_income) <- "County Median Income ($)"
-table1::label(df$pct_lt17) <- "County Age < 17 years (%)"
-table1::label(df$pct_gt65) <- "County Age > 65 years (%)"
+table1::label(df$lt17) <- "County Age < 17 years"
+table1::label(df$gt65) <- "County Age > 65 years"
 # table1::label(df$is_rural) <- "County Type"
-table1::table1(~density + cases + unemp_rate + median_income + pct_lt17 + pct_gt65 | rural_cat, data = df, caption = "Table 1: Texas County Variable Statistics", topclass="Rtable1-zebra", overall = "Total")
+table1::table1(~density + cases + unemployed + median_income + lt17 + gt65 | rural_cat, data = df, caption = "Table 1: Texas County Variable Statistics", topclass="Rtable1-zebra", overall = "Total")
 ```
 Below are histograms of variables that did not follow normal distribution and required transformation. Each of these variables was logarithmically transformed.
 ```{r scatterplots, message=FALSE}
@@ -92,7 +92,7 @@ hist(cases, main="Histogram of Covid-19 Cases")
 hist(deaths, main="Histogram of Covid-19 Deaths")
 hist(long_trip, main="Histogram of Distance")
 hist(density, main="Histogram of Population Density")
-hist(unemp_rate, main="Histogram of Unemployment Rate")
+hist(unemployed, main="Histogram of Unemployment")
 hist(median_income, main="Histogram of Median Income")
 
 ```
@@ -108,9 +108,11 @@ df %>%
     long_trip = log(long_trip),
     density = log(density),
     median_income=log(median_income+1),
-    unemp_rate = log(unemp_rate+1)
+    unemployed = log(unemployed+1),
+    lt17 = log(lt17),
+    gt65 = log(gt65)
   ) %>%
-  select(long_trip, cases, deaths, median_income, povery_rate, density, pct_lt17, pct_gt65) %>%
+  select(long_trip, cases, deaths, median_income, unemployed, density, lt17, gt65) %>%
   GGally::ggpairs(.,
                legend = 1,
                aes(color = County),
@@ -200,9 +202,9 @@ The results from the linear regression analysis can be seen below for each model
 ```{r model creation, echo=FALSE, warning=FALSE}
 
 #need to change these to per capita data
-model1 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + log(median_income+1), data = df) #limited model
-model2 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + log(median_income+1) + povery_rate+ log(density), data = df)
-model3 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + log(median_income+1) + povery_rate+ log(density) + pct_lt17 + pct_gt65, data = df) #final model
+model1 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural, data = df) #limited model
+model2 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + log(median_income+1) + log(density), data = df)
+model3 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + log(median_income+1) + log(density) + log(lt17) + log(gt65), data = df) #final model
 stargazer(model1, model2, model3, type='text', title="Results", align=TRUE)
 ```
 From this output table, we can see most of our hypotheses about the variables we included in our model were correct and do have a statistically significant contribution to our model already. 
