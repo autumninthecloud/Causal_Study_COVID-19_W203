@@ -34,16 +34,15 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Introduction
 
-Summer vacations in the United States are synonymous with sunny, leisurely days spent with loved ones. As Ella Fitzgerald so aptly sings, “Summertime, and the living is easy.” However, travel in the recent peak-vacation months has certainly deviated from this idealistic frame of mind with the onset of the COVID-19 pandemic in early 2020. The global travel industry has experienced sharp declines. Specifically in the United States, “travel spending totaled a mere $679 billion in 2020, an unprecedented 42% annual decline (nearly $500 billion) from 2019,” according to analysis from the U.S. Travel Association. 
-As infection and vaccination rates oscillate regionally along with government policies for business operation restrictions in the United States, our team of data scientists will look to answer the following research question in more detail using linear regression techniques: 
+Summer vacations in the United States are synonymous with sunny, leisurely days spent with loved ones. As Ella Fitzgerald so aptly sings, “Summertime, and the living is easy.” However, travel in the recent peak-vacation months has certainly deviated from this idealistic frame of mind with the onset of the COVID-19 pandemic in early 2020. The global travel industry has experienced sharp declines in Revenue. Specifically in the United States, “travel spending totaled a mere $679 billion in 2020, an unprecedented 42% annual decline (nearly $500 billion) from 2019,” according to analysis from the U.S. Travel Association. Our hypothesis as to why this decline has occurred is due directly to the presence of the Covid-19 virus and the number of cases. As virus infection oscillate regionally in the United States, our team of data scientists will look to answer the following primary research question using linear regression statistical techniques: 
 
-Do COVID-19 infection rates impact vacation travel distance for U.S. residents in the state of Texas? 
-How does income, population density, and covid regulations in each county impact traveling? 
+Do COVID-19 cases impact vacation travel trips for Texas for June, 2021?
 
-We will analyze datasets pertaining to these variables for Texas counties and create three models to understand if causal relationships exist between the number of long distance trips, population income, population density (rural or urban counties). Our hypothesis is that an there is a causal relationship between """
+Our primary hypothesis is that there is a causal relationship between the number of Covid-19 cases and the number of vacation trips; when Covid-19 cases increase, the number of vacation travel trips decrease. To investigate, a dataset comprising of Texas county data will be analyzed. Based on the data, our team will also investigate the following secondary question:
 
--->Need to explain distance of travel with bs TRANSPORT data
--->Need to add more to causal theory to justify variable selection
+Do income, population density, age, and/or county type (rural or urban) per county impact traveling for Texas residents? 
+
+For the analysis, we will create three models to understand if causal relationships exist between the outcome variable, the number of long distance trips, and the predictor variables per Texas county: income, population density, age, Covid-19 cases and deaths . We will use an indicator variable, rural counties, to compare performance of our models for rural or urban counties.
 
 ## Operationalization
 
@@ -90,10 +89,13 @@ attach(df)
 par(mfrow=c(3,2))
 hist(cases, main="Histogram of Covid-19 Cases")
 hist(deaths, main="Histogram of Covid-19 Deaths")
-hist(long_trip, main="Histogram of Distance")
+hist(long_trip, main="Histogram of Trip Count")
 hist(density, main="Histogram of Population Density")
 hist(unemp_rate, main="Histogram of Unemployment Rate")
+hist(log(median_income), main="Histogram of Median Income")
 hist(median_income, main="Histogram of Median Income")
+summary(df$median_income)
+summary(df$long_trip)
 
 ```
 
@@ -201,9 +203,14 @@ The results from the linear regression analysis can be seen below for each model
 
 #need to change these to per capita data
 model1 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + log(median_income+1), data = df) #limited model
-model2 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + median_income + unemp_rate + log(density), data = df)
-model3 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + median_income + unemp_rate + log(density) + pct_lt17 + pct_gt65, data = df) #final model
-stargazer(model1, model2, model3, type='text', title="Results", align=TRUE)
+summary(model1)
+model1b <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + median_income, data = df) #limited model
+summary(model1b)
+summary(df$median_income)
+
+model2 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + log(median_income) + unemp_rate + log(density), data = df)
+model3 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + log(median_income)+ unemp_rate + log(density) + pct_lt17 + pct_gt65, data = df) #final model
+stargazer(model1, model1b, model2, model3, type='text', title="Results", align=TRUE)
 ```
 Additionally, to indicate if any of the models provide a better fit to the dataset than a model that contains no independent variables, an F test was performed. The results for each model are shown below:
 ```{r F Test}
