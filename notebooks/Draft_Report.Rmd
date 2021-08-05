@@ -50,7 +50,7 @@ Our primary hypothesis is that there is a causal relationship between the number
 
 Do income, population density, age, and/or county type (rural or urban) per county impact traveling for Texas residents? 
 
-For the analysis, we will create three models to understand if causal relationships exist between the outcome variable, the number of long distance trips, and the predictor variables per Texas county: income, population density, age, Covid-19 cases and deaths . We will use an indicator variable, rural counties, to compare performance of our models for rural or urban counties.
+For the analysis, we will create three models to understand if causal relationships exist between the outcome variable, the number of long distance trips, and the control variables per Texas county: income, population density, age, Covid-19 cases and deaths . We will use an indicator variable, rural counties, to compare performance of our models for both rural or urban counties. By creating models with these variables, we intend to answer our primary and secondary research questions to provide insight about how vacation travel has been impacted so that interested stakeholders can gain an understanding of how to improve the revenue declines in the travel industry.
 
 # Data Description
 
