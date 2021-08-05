@@ -82,7 +82,7 @@ We gathered covid case and death data from NYT. We gathered trip distance data f
 #### Operationalization of additional variables
 To enrich our model and limit OVB, we brainstormed a number of additional variables that could affect travel rates during covid. For one, we looked at how covid affected the county, through the unemployment rate. We also looked at age, gender, income demographics. Then, in addition to income demographics, we focused on percent of younger folks, as defined as those younger than 17 and older folks as defined as those older than 65 because of the nature of how covid affects an individual.
 
-As indicated, each source will provide information on county population demographics such as income, rural vs. urban classification, and status of pandemic regulations. Together, these sources were filtered for the state of Texas and combined to create a dataframe for analysis.
+As indicated, each source will provide information on county population demographics such as income, rural vs. urban classification, etc. Together, these sources were filtered for the state of Texas and combined to create a dataframe for analysis.
 ---
 
 ```{r dataframe, echo=FALSE}
