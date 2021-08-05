@@ -40,7 +40,7 @@ As infection and vaccination rates oscillate regionally along with government po
 Do COVID-19 infection rates impact vacation travel distance for U.S. residents in the state of Texas? 
 How does income, population density, and covid regulations in each county impact traveling? 
 
-We will analyze datasets pertaining to these variables for Texas counties and create three models to understand if causal relationships exist between distance traveled, population income, population density (rural or urban counties), and government regulations. Our hypothesis is that an there is a causal relationship between """
+We will analyze datasets pertaining to these variables for Texas counties and create three models to understand if causal relationships exist between the number of long distance trips, population income, population density (rural or urban counties). Our hypothesis is that an there is a causal relationship between """
 
 -->Need to explain distance of travel with bs TRANSPORT data
 -->Need to add more to causal theory to justify variable selection
@@ -65,6 +65,7 @@ As indicated, each source will provide information on county population demograp
 
 ```{r dataframe, echo=FALSE}
 df <- read.csv('./../data/processed/covid_trips_processed.csv')
+head(df)
 ```
 
 ## Exploratory Data Analysis
@@ -100,30 +101,30 @@ hist(median_income, main="Histogram of Median Income")
 ```{r ggally, echo=FALSE, message=FALSE}
 County = as.factor(df$rural_cat)
 
-# df %>%
-#   mutate(
-#     cases = log(cases+1),
-#     deaths = log(deaths+1),
-#     long_trip = log(long_trip),
-#     density = log(density),
-#     median_income=log(median_income+1),
-#     unemp_rate = log(unemp_rate+1)
-#   ) %>%
-#   select(long_trip, cases, deaths, median_income, unemp_rate, density, pct_lt17, pct_gt65) %>%
-#   GGally::ggpairs(.,
-#                legend = 1,
-#                aes(color = County),
-#                title = "Figure 1: Variable Characterstics",
-#                upper = list(continuous = wrap("cor", size = 2.5)),
-#                lower = list(continuous = wrap("points", alpha = 0.5, size=0.3)),
-#                diag = list(continuous = wrap("densityDiag", alpha = 0.5)),
-#                columnLabels=c("Distance", "Cases", "Deaths", "Income", "Unemployment", "Pop Density", "Age < 17","Age > 65"))+
-#                theme(legend.position = "bottom")
+df %>%
+  mutate(
+    cases = log(cases+1),
+    deaths = log(deaths+1),
+    long_trip = log(long_trip),
+    density = log(density),
+    median_income=log(median_income+1),
+    unemp_rate = log(unemp_rate+1)
+  ) %>%
+  select(long_trip, cases, deaths, median_income, unemp_rate, density, pct_lt17, pct_gt65) %>%
+  GGally::ggpairs(.,
+               legend = 1,
+               aes(color = County),
+               title = "Figure 1: Variable Characterstics",
+               upper = list(continuous = wrap("cor", size = 2.5)),
+               lower = list(continuous = wrap("points", alpha = 0.5, size=0.3)),
+               diag = list(continuous = wrap("densityDiag", alpha = 0.5)),
+               columnLabels=c("Distance", "Cases", "Deaths", "Income", "Unemployment", "Pop Density", "Age < 17","Age > 65"))+
+               theme(legend.position = "bottom")
 
-ggpairs(df, columns = 3:ncol(df), legend = 1, aes(color = County), title = "Figure 1: Variable Characterstics")
-#                upper = list(continuous = wrap("cor", size = 2.5)),
-#                lower = list(continuous = wrap("points", alpha = 0.5, size=0.3)),
-#                diag = list(continuous = wrap("densityDiag", alpha = 0.5)))
+# ggpairs(df, columns = 3:ncol(df), legend = 1, aes(color = County), title = "Figure 1: Variable Characterstics")
+# #                upper = list(continuous = wrap("cor", size = 2.5)),
+# #                lower = list(continuous = wrap("points", alpha = 0.5, size=0.3)),
+# #                diag = list(continuous = wrap("densityDiag", alpha = 0.5)))
 
 ```
 
@@ -179,16 +180,16 @@ Upon final review of the dataset, there are no additional changes required to pr
 To investigate the causal relationships between distance traveled and variables within the dataset, a linear regression was performed in R Studio for three models. The first model is limited to study only key variables of interest for measurement. The second model expands upon the first model to also include key explanatory variables and covariates that are hypothesized to improve performance of the previous model. The third model is all-inclusive of the variables available to the team at the time of data gathering. Details of each model analyzed can be found below. 
 
 $$
-  Model 1 = f(\text{log(Distance Traveled)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)})  + \beta_2 h(\text{Rural County}) + \beta_3 h(\text{Median Income})
+  Model 1 = f(\text{log(Number of Long Trips)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)})  + \beta_2 h(\text{Rural County}) + \beta_3 h(\text{Median Income})
 $$ 
 
 
 $$
-  Model 2 = f(\text{log(Distance Traveled)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)})  + \beta_2 h(\text{Rural County}) + \beta_3 h(\text{Median Income}) + \beta_4 h(\text{Unemployment Rate}) + \beta_5 h(\text{log(Population Density})
+  Model 2 = f(\text{log(Number of Long Trips)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)})  + \beta_2 h(\text{Rural County}) + \beta_3 h(\text{Median Income}) + \beta_4 h(\text{Unemployment Rate}) + \beta_5 h(\text{log(Population Density})
 $$
 
 $$
-  Model 3 = f(\text{log(Distance Traveled)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)})  + \beta_2 h(\text{Rural County}) + \beta_3 h(\text{Median Income})
+  Model 3 = f(\text{log(Number of Long Trips)}) = \beta_0 + \beta_1 g(\text{log(Covid-19 Cases)})  + \beta_2 h(\text{Rural County}) + \beta_3 h(\text{Median Income})
   + \beta_4 h(\text{Unemployment Rate}) + \beta_5 h(\text{log(Population Density}) + \beta_6 h(\text{log(% Age < 17}) + \beta_7 h(\text{log(% Age < 17})
 $$ 
 
