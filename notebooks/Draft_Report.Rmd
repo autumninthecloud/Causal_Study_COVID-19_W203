@@ -206,38 +206,26 @@ model2 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + log(medi
 model3 <- lm(log(long_trip) ~ log(cases+1) + log(deaths+1) + is_rural + log(median_income+1) + log(density) + log(lt17) + log(gt65), data = df) #final model
 stargazer(model1, model2, model3, type='text', title="Results", align=TRUE)
 ```
+
+## Discussion
 From this output table, we can discern quite a bit of information. 
 
 First, we consider the models holistically. Here are some of our observations:
-* In model1, all of our variables are extremely significant, as expected from my hypotheses, though in the opposite direction. We would expect an inverse relationship between covid and travel, though it seems that this is estimating a positive relationship
+* In model1, all of our variables are extremely significant, though in the opposite direction as expected. We would expect an inverse relationship between covid and travel, though it seems that this model is producing a positive relationship.
 * In model2, when county density is factored in, the presence of covid seems to have less positive of an effect on travel and that higher density counties see more travel. 
-* In model3, with additionally age factored in, we see that actually the most statistically significant effect on long trips are median income of the household and presence of kids under 17. 
+* In model3 with age factored in, we see that actually the most statistically significant effect on long trips are median income of the household and presence of kids under 17. 
 * In terms of R^2 and RSE, we are improving with each model. 
 * The addition of our chosen parameters for each following model is also statistically better than the previous, as indicated by the F statistic. 
 
 We will also interpret the coefficient values and what these mean in the context of our model. Almost all of our variables needed a log transform, including the output, making this a log-log regression. These regressions are most intuitive to understand in terms of percent increases. 
 * First to note is our persistently significant constant in each model. Regardless of any variables, we are getting between ~300 (as with model3) and over 8000 (as with model2) trips over 100 miles. This is calculated as e^(Constant). 
 * In model1, for every percent increase in both cases and deaths, we are getting almost half a percent increase in trips. The positive relationship doesnt make much sense, so we will look to the other models.
-* In model2, we see that density has a more positive relationship with trips than do covid cases and deaths. 
-* In model3, covid cases and deaths become insiginifcant, though its lookign 
-
-Additionally, to indicate if any of the models provide a better fit to the dataset than a model that contains no independent variables, an F test was performed. The results for each model are shown below:
-```{r F Test}
-#Run F test to show statistical significance of additional variables
-anova(model1, model2, model3, test = "F")
-```
-From the F-test,  we can see the the addition of the variables into model 2 and model 3 do contribute significant information to our model based off of the derived p-values.
-
-Last, the significance of individual regression coefficients was tested using robust standard errors in R studio for model 3. The results are shown below: 
-```{r coeftest}
-#Run coeftest to show statistical significance of all variables in the model with robust standard errors
-coeftest(model3, vcov = vcovHC(model3, type="HC1"))
-```
-From the t-test, we can see that Covid-19 cases and median income are statistically significant. Additionally, the percentage of adults greater than 65, the population density, and the Covid-19 death variables are even more statistically significant.
-
-## Discussion
+* In model2, we see that density has a more positive relationship with trips, with every percent increase in county density modeled to a half percent increase in trips. Also the positive relationship between covid cases/ deaths and trips has decreased to resulting in 0.15 and 0.25% increase in trips respectively.
+* In model3, covid cases and deaths become insignificant. The coefficients have become slightly negative as in increase in cases and deaths decreases trips, which is in line with our original hypothesis, but is not significant. Instead, for every percent median income of the county increases by, the amount of long trips decrease by 0.3%. This could indicate that more affluent counties trust science and err on the safe side in the midst of covid. Finally, in our 3rd model, counties with more people under 17 years of age are more likely to take long trips. Due to the time frame of our analysis, this also makes sense because june is the start of summer break when many families like to take vacations together.
 
 ### Model Limitations
+
+DELTE*** Not CLM since >100 samples. Large sample assumptions = IID and unique BLP (which is related to colinearity...)
 
 1. **IID Sampling:** There isn't a direct database check for this unfortunately. Looking into how the data was generated, we believe this is IID generally. The data was gathered from independent surveys within the Texas population for all models generated across all counties.
 
@@ -286,9 +274,9 @@ Another example of an omitted variable that may also cause bias in our model is 
 
 ## Conclusion & Next Steps
 
-The goal of this analysis was to determine if there existed a causal relationship between distance traveled and Covid-19 infection rates for residents of the state of Texas. Based upon the linear regression analysis above, model 2 would indicate there may be a causal relationship between distance traveled (outcome variable) and the variables found within that model. 
+The goal of this analysis was to determine if there existed a causal relationship between distance traveled and Covid-19 infection rates for residents of the state of Texas. Based upon the linear regression analysis above, model 2 would indicate there may be a causal relationship between distance traveled (outcome variable) and the variables found within that model, though with all variables considered, our results do not indicate vacation and covid cases are necessarily related.
 
-For future analysis, it is recommended that Covid-19 policy adherence data per county be incorporated into the model to increase the accuracy. While the Govenor of Texas issued detailed protocols or mandates for the state of Texas, the degree to which each county (and thus the individual residents) complied would be useful data to have if such data were to exist. Additionally, incorporating vaccination rates could aid in development of a model with even higher accuracy. Generally, vaccinations could increase confidence among individuals interested in traveling, especially if they have been in long periods of quarantine or government mandated lockdowns. Last, it is highly recommended that any model generated in the future continue to use the latest data available given the oscillation in vaccination rates, government policy, and new or known variants of the Covid-19 virus.
+For future analysis, it is recommended that Covid-19 policy adherence data per county be incorporated into the model to increase the accuracy. While the Governor of Texas issued detailed protocols or mandates for the state of Texas, the degree to which each county (and thus the individual residents) complied would be useful data to have if such data were to exist. Additionally, incorporating vaccination rates could aid in development of a model with even higher accuracy. Generally, vaccinations could increase confidence among individuals interested in traveling, especially if they have been in long periods of quarantine or government mandated lockdowns. Last, it is highly recommended that any model generated in the future continue to use the latest data available given the oscillation in vaccination rates, government policy, and new or known variants of the Covid-19 virus.
 
 ## References
 
